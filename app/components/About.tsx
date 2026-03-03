@@ -11,37 +11,89 @@ const stats = [
 
 const goals = ['Scalable project architecture', 'Advanced Unity systems', 'Performance optimization']
 
-function TiltCard({ children }: { children: React.ReactNode }) {
+function PixelCard({ children }: { children: React.ReactNode }) {
   const cardRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const animRef = useRef<number>(0)
+  const pixelSizeRef = useRef(1)
+  const directionRef = useRef<'in' | 'out' | null>(null)
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const animatePixel = () => {
+    const canvas = canvasRef.current
     const card = cardRef.current
-    if (!card) return
-    const rect = card.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const cx = rect.width / 2
-    const cy = rect.height / 2
-    const rotateX = ((y - cy) / cy) * -12
-    const rotateY = ((x - cx) / cx) * 12
-    card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`
-    card.style.borderColor = 'rgba(157,184,154,0.6)'
-    card.style.boxShadow = '0 20px 60px rgba(74,155,127,0.3)'
+    if (!canvas || !card) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const target = directionRef.current === 'in' ? 12 : 1
+    const step = directionRef.current === 'in' ? 1.5 : -1.5
+    pixelSizeRef.current += step
+
+    if (directionRef.current === 'in' && pixelSizeRef.current >= target) pixelSizeRef.current = target
+    if (directionRef.current === 'out' && pixelSizeRef.current <= target) pixelSizeRef.current = target
+
+    const ps = Math.max(1, Math.round(pixelSizeRef.current))
+    const w = canvas.width
+    const h = canvas.height
+
+    ctx.clearRect(0, 0, w, h)
+
+    if (ps <= 1) {
+      cancelAnimationFrame(animRef.current)
+      canvas.style.opacity = '0'
+      return
+    }
+
+    canvas.style.opacity = '1'
+
+    // Draw pixelated green grid overlay
+    for (let y = 0; y < h; y += ps) {
+      for (let x = 0; x < w; x += ps) {
+        const brightness = 0.03 + Math.random() * 0.06
+        ctx.fillStyle = `rgba(74,155,127,${brightness})`
+        ctx.fillRect(x, y, ps - 1, ps - 1)
+      }
+    }
+
+    // Draw pixel border glow
+    ctx.strokeStyle = `rgba(74,155,127,${0.2 + (ps / 12) * 0.5})`
+    ctx.lineWidth = ps / 3
+    ctx.strokeRect(ps, ps, w - ps * 2, h - ps * 2)
+
+    if (
+      (directionRef.current === 'in' && pixelSizeRef.current < target) ||
+      (directionRef.current === 'out' && pixelSizeRef.current > target)
+    ) {
+      animRef.current = requestAnimationFrame(animatePixel)
+    }
+  }
+
+  const handleMouseEnter = () => {
+    directionRef.current = 'in'
+    cancelAnimationFrame(animRef.current)
+    animRef.current = requestAnimationFrame(animatePixel)
+    if (cardRef.current) {
+      cardRef.current.style.borderColor = 'rgba(74,155,127,0.7)'
+      cardRef.current.style.boxShadow = '0 0 30px rgba(74,155,127,0.25)'
+    }
   }
 
   const handleMouseLeave = () => {
-    const card = cardRef.current
-    if (!card) return
-    card.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) scale(1)'
-    card.style.borderColor = 'rgba(74,155,127,0.25)'
-    card.style.boxShadow = '0 8px 32px rgba(74,155,127,0.1)'
+    directionRef.current = 'out'
+    cancelAnimationFrame(animRef.current)
+    animRef.current = requestAnimationFrame(animatePixel)
+    if (cardRef.current) {
+      cardRef.current.style.borderColor = 'rgba(74,155,127,0.25)'
+      cardRef.current.style.boxShadow = '0 8px 32px rgba(74,155,127,0.1)'
+    }
   }
 
   return (
     <div
       ref={cardRef}
       className="fade-in"
-      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
         opacity: 0,
@@ -49,13 +101,26 @@ function TiltCard({ children }: { children: React.ReactNode }) {
         border: '1px solid rgba(74,155,127,0.25)',
         borderRadius: '20px', padding: '1.5rem',
         textAlign: 'center',
-        transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.2s',
+        transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
         cursor: 'default',
-        willChange: 'transform',
         boxShadow: '0 8px 32px rgba(74,155,127,0.1)',
         position: 'relative', zIndex: 2,
+        overflow: 'hidden',
       }}
     >
+      <canvas
+        ref={canvasRef}
+        width={300}
+        height={200}
+        style={{
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%',
+          pointerEvents: 'none',
+          opacity: 0,
+          transition: 'opacity 0.1s',
+          borderRadius: '20px',
+        }}
+      />
       {children}
     </div>
   )
@@ -521,20 +586,112 @@ export default function About() {
           <div>
             <div className="fade-in" style={{
               opacity: 0, transform: 'translateY(30px)', transition: 'all 0.6s ease',
-              width: '130px', height: '130px', borderRadius: '50%',
-              background: 'linear-gradient(135deg, #4A9B7F, #9DB89A)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '3.5rem',
-              boxShadow: '0 0 50px rgba(74,155,127,0.5)',
+              width: '150px', height: '150px',
               margin: '0 auto 2.5rem',
-              animation: 'floatAvatar 4s ease-in-out infinite',
             }}>
-              🕹️
+              <canvas
+                width={150}
+                height={150}
+                ref={el => {
+                  if (!el) return
+                  const T = require('three')
+                  const scene = new T.Scene()
+                  const camera = new T.PerspectiveCamera(45, 1, 0.1, 100)
+                  camera.position.z = 4
+                  const renderer = new T.WebGLRenderer({ canvas: el, antialias: true, alpha: true })
+                  renderer.setSize(150, 150)
+                  renderer.setClearColor(0x000000, 0)
+
+                  const bodyGeo = new T.BoxGeometry(1.6, 0.18, 1.6)
+                  const bodyMat = new T.MeshStandardMaterial({ color: 0x2D4F47, metalness: 0.8, roughness: 0.2 })
+                  const body = new T.Mesh(bodyGeo, bodyMat)
+                  scene.add(body)
+
+                  const topGeo = new T.BoxGeometry(1.4, 0.02, 1.4)
+                  const topMat = new T.MeshStandardMaterial({ color: 0x4A9B7F, metalness: 0.9, roughness: 0.1, emissive: new T.Color(0x4A9B7F), emissiveIntensity: 0.4 })
+                  const top = new T.Mesh(topGeo, topMat)
+                  top.position.y = 0.1
+                  body.add(top)
+
+                  const lineMat = new T.LineBasicMaterial({ color: 0x9DB89A, transparent: true, opacity: 0.8 })
+                  const linePositions = [
+                    [-0.5, 0, -0.5, 0.5, 0, -0.5],
+                    [-0.5, 0, 0, 0.5, 0, 0],
+                    [-0.5, 0, 0.5, 0.5, 0, 0.5],
+                    [-0.3, 0, -0.6, -0.3, 0, 0.6],
+                    [0.3, 0, -0.6, 0.3, 0, 0.6],
+                  ]
+                  linePositions.forEach(pts => {
+                    const geo = new T.BufferGeometry().setFromPoints([
+                      new T.Vector3(pts[0], pts[1] + 0.12, pts[2]),
+                      new T.Vector3(pts[3], pts[4] + 0.12, pts[5]),
+                    ])
+                    body.add(new T.Line(geo, lineMat))
+                  })
+
+                  const pinMat = new T.MeshStandardMaterial({ color: 0x9DB89A, metalness: 1, roughness: 0.1 })
+                  const pinGeo = new T.BoxGeometry(0.04, 0.04, 0.12)
+                  for (let side = 0; side < 4; side++) {
+                    for (let p = -3; p <= 3; p++) {
+                      const pin = new T.Mesh(pinGeo, pinMat)
+                      if (side === 0) pin.position.set(p * 0.22, -0.05, 0.88)
+                      else if (side === 1) pin.position.set(p * 0.22, -0.05, -0.88)
+                      else if (side === 2) { pin.rotation.y = Math.PI / 2; pin.position.set(0.88, -0.05, p * 0.22) }
+                      else { pin.rotation.y = Math.PI / 2; pin.position.set(-0.88, -0.05, p * 0.22) }
+                      body.add(pin)
+                    }
+                  }
+
+                  body.add(new T.LineSegments(new T.EdgesGeometry(bodyGeo), new T.LineBasicMaterial({ color: 0x4A9B7F, transparent: true, opacity: 0.6 })))
+
+                  scene.add(new T.AmbientLight(0xffffff, 0.5))
+                  const pl = new T.PointLight(0x4A9B7F, 4, 10)
+                  pl.position.set(3, 3, 3)
+                  scene.add(pl)
+                  const pl2 = new T.PointLight(0x9DB89A, 2, 8)
+                  pl2.position.set(-3, -2, 2)
+                  scene.add(pl2)
+
+                  let isDragging = false
+                  let prevX = 0, prevY = 0
+                  let velX = 0, velY = 0
+                  // Set initial cool diagonal tilt
+                  body.rotation.x = 0.55
+                  body.rotation.y = 0.4
+
+                  el.addEventListener('mousedown', e => { isDragging = true; prevX = e.clientX; prevY = e.clientY; el.style.cursor = 'grabbing' })
+                  window.addEventListener('mousemove', e => {
+                    if (!isDragging) return
+                    velY = (e.clientX - prevX) * 0.018
+                    velX = (e.clientY - prevY) * 0.018
+                    prevX = e.clientX; prevY = e.clientY
+                  })
+                  window.addEventListener('mouseup', () => { isDragging = false; el.style.cursor = 'grab' })
+                  el.style.cursor = 'grab'
+
+                  const animate = () => {
+                    requestAnimationFrame(animate)
+                    body.rotation.y += velY
+                    body.rotation.x += velX
+                    if (!isDragging) {
+                      // Slow friction — velocity dies smoothly
+                      velY *= 0.92
+                      velX *= 0.92
+                      // Slow constant Y spin — like Apple product showcase
+                      velY += 0.003
+                      // Gently ease X back to the cool tilt so top face stays visible
+                      body.rotation.x += (0.55 - body.rotation.x) * 0.015
+                    }
+                    renderer.render(scene, camera)
+                  }
+                  animate()
+                }}
+              />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               {stats.map((stat, i) => (
-                <TiltCard key={i}>
+                <PixelCard key={i}>
                   <div style={{ fontSize: '1.8rem', marginBottom: '0.4rem' }}>{stat.icon}</div>
                   <div style={{
                     fontSize: '1.8rem', fontWeight: 800,
@@ -546,12 +703,12 @@ export default function About() {
                   <div style={{ color: '#9DB89A', fontSize: '0.78rem', marginTop: '0.3rem' }}>
                     {stat.label}
                   </div>
-                </TiltCard>
+                </PixelCard>
               ))}
             </div>
 
             <div style={{ marginTop: '1rem' }}>
-              <TiltCard>
+              <PixelCard>
                 <div style={{ color: '#C4CDB8', fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.8rem', textAlign: 'left' }}>
                   🔭 Currently working toward
                 </div>
@@ -563,7 +720,7 @@ export default function About() {
                     <span style={{ color: '#4A9B7F' }}>→</span> {goal}
                   </div>
                 ))}
-              </TiltCard>
+              </PixelCard>
             </div>
           </div>
         </div>
