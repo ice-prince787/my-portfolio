@@ -20,7 +20,7 @@ export default function MobileBlock() {
       position: 'fixed',
       inset: 0,
       zIndex: 9999,
-      background: 'rgba(66,0,57,0.97)',
+      background: 'rgba(36,30,33,0.97)',
       backdropFilter: 'blur(20px)',
       display: 'flex',
       flexDirection: 'column',
@@ -34,7 +34,7 @@ export default function MobileBlock() {
         position: 'absolute',
         width: '300px', height: '300px',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(155,93,229,0.2) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(74,155,127,0.2) 0%, transparent 70%)',
         filter: 'blur(40px)',
         pointerEvents: 'none',
       }} />
@@ -51,25 +51,25 @@ export default function MobileBlock() {
         <div style={{
           width: '64px', height: '64px',
           borderRadius: '16px',
-          background: 'rgba(155,93,229,0.15)',
-          border: '1px solid rgba(155,93,229,0.3)',
+          background: 'rgba(74,155,127,0.15)',
+          border: '1px solid rgba(74,155,127,0.3)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           opacity: 0.5,
         }}>
-          <Smartphone size={32} color="#9B5DE5" />
+          <Smartphone size={32} color="#4A9B7F" />
         </div>
 
-        <div style={{ color: '#F15BB5', fontSize: '1.5rem' }}>→</div>
+        <div style={{ color: '#9DB89A', fontSize: '1.5rem' }}>→</div>
 
         <div style={{
           width: '72px', height: '72px',
           borderRadius: '18px',
-          background: 'linear-gradient(135deg, rgba(155,93,229,0.3), rgba(241,91,181,0.2))',
-          border: '1px solid rgba(155,93,229,0.5)',
+          background: 'linear-gradient(135deg, rgba(74,155,127,0.3), rgba(157,184,154,0.2))',
+          border: '1px solid rgba(74,155,127,0.5)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 0 30px rgba(155,93,229,0.3)',
+          boxShadow: '0 0 30px rgba(74,155,127,0.3)',
         }}>
-          <Monitor size={36} color="#F15BB5" />
+          <Monitor size={36} color="#9DB89A" />
         </div>
       </div>
 
@@ -77,7 +77,7 @@ export default function MobileBlock() {
       <h1 style={{
         fontSize: '1.8rem',
         fontWeight: 800,
-        background: 'linear-gradient(135deg, #F6F2FF, #9B5DE5, #F15BB5)',
+        background: 'linear-gradient(135deg, #C4CDB8, #4A9B7F, #9DB89A)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         marginBottom: '1rem',
@@ -88,7 +88,7 @@ export default function MobileBlock() {
       </h1>
 
       <p style={{
-        color: '#c9b8d8',
+        color: '#9DB89A',
         fontSize: '1rem',
         lineHeight: 1.7,
         maxWidth: '300px',
@@ -100,12 +100,12 @@ export default function MobileBlock() {
 
       {/* URL chip */}
       <div style={{
-        background: 'rgba(155,93,229,0.12)',
-        border: '1px solid rgba(155,93,229,0.35)',
+        background: 'rgba(74,155,127,0.12)',
+        border: '1px solid rgba(74,155,127,0.35)',
         borderRadius: '100px',
         padding: '0.5rem 1.2rem',
         fontSize: '0.85rem',
-        color: '#9B5DE5',
+        color: '#4A9B7F',
         fontWeight: 600,
         marginBottom: '2rem',
         position: 'relative',
@@ -120,7 +120,7 @@ export default function MobileBlock() {
         style={{
           background: 'transparent',
           border: 'none',
-          color: '#c9b8d8',
+          color: '#9DB89A',
           fontSize: '0.85rem',
           cursor: 'pointer',
           textDecoration: 'underline',

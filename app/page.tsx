@@ -3,6 +3,7 @@ import Hero from './components/Hero'
 import About from './components/About'
 import Sidebar from './components/Sidebar'
 import MobileBlock from './components/MobileBlock'
+import Skills from './components/Skills'
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
       <Sidebar />
       <Hero />
       <About />
+      <Skills />
     </main>
   )
 }

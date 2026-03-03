@@ -52,16 +52,16 @@ export default function Sidebar() {
         onMouseEnter={() => setExpanded(true)}
         onMouseLeave={() => setExpanded(false)}
         style={{
-          background:    'rgba(66,0,57,0.88)',
+          background:    'rgba(36,30,33,0.88)',
           backdropFilter:'blur(16px)',
-          border:        '1px solid rgba(155,93,229,0.3)',
+          border:        '1px solid rgba(74,155,127,0.3)',
           borderRadius:  '22px',
           padding:       '10px 8px',
           display:       'flex',
           flexDirection: 'column',
           alignItems:    'stretch',
           gap:           '2px',
-          boxShadow:     '0 8px 32px rgba(155,93,229,0.2)',
+          boxShadow:     '0 8px 32px rgba(74,155,127,0.2)',
           transition:    'width 0.3s cubic-bezier(0.4,0,0.2,1)',
           overflow:      'hidden',
           width:         expanded ? `${EXPANDED_WIDTH}px` : `${ICON_SIZE}px`,
@@ -81,14 +81,14 @@ export default function Sidebar() {
             width:          '34px',
             height:         '34px',
             borderRadius:   '10px',
-            background:     'linear-gradient(135deg, #9B5DE5, #F15BB5)',
+            background:     'linear-gradient(135deg, #4A9B7F, #9DB89A)',
             display:        'flex',
             alignItems:     'center',
             justifyContent: 'center',
             fontSize:       '1.15rem',
             fontWeight:     900,
             color:          'white',
-            boxShadow:      '0 0 12px rgba(155,93,229,0.5)',
+            boxShadow:      '0 0 12px rgba(74,155,127,0.5)',
             fontFamily:     'Georgia, serif',
             flexShrink:     0,
           }}>
@@ -116,15 +116,15 @@ export default function Sidebar() {
                 flexShrink:     0,
                 transition:     'background 0.2s, border 0.2s',
                 background:     isActive
-                  ? 'linear-gradient(135deg,rgba(155,93,229,0.35),rgba(241,91,181,0.2))'
+                  ? 'linear-gradient(135deg,rgba(74,155,127,0.35),rgba(157,184,154,0.2))'
                   : 'transparent',
                 border:         isActive
-                  ? '1px solid rgba(155,93,229,0.5)'
+                  ? '1px solid rgba(74,155,127,0.5)'
                   : '1px solid transparent',
                 boxSizing:      'border-box',
               }}
               onMouseEnter={e => {
-                if (!isActive) e.currentTarget.style.background = 'rgba(155,93,229,0.15)'
+                if (!isActive) e.currentTarget.style.background = 'rgba(74,155,127,0.15)'
               }}
               onMouseLeave={e => {
                 if (!isActive) e.currentTarget.style.background = 'transparent'
@@ -141,7 +141,7 @@ export default function Sidebar() {
               }}>
                 <Icon
                   size={ICON_PX}
-                  color={isActive ? '#F15BB5' : '#c9b8d8'}
+                  color={isActive ? '#9DB89A' : '#9DB89A'}
                   strokeWidth={isActive ? 2.5 : 1.8}
                 />
               </span>
@@ -150,7 +150,7 @@ export default function Sidebar() {
               <span style={{
                 fontSize:   '0.85rem',
                 fontWeight: isActive ? 700 : 500,
-                color:      isActive ? '#F6F2FF' : '#c9b8d8',
+                color:      isActive ? '#C4CDB8' : '#9DB89A',
                 opacity:    expanded ? 1 : 0,
                 whiteSpace: 'nowrap',
                 transition: `opacity 0.2s ease ${i * 0.03}s`,
@@ -165,7 +165,7 @@ export default function Sidebar() {
         {/* Divider */}
         <div style={{
           height:     '1px',
-          background: 'rgba(155,93,229,0.2)',
+          background: 'rgba(74,155,127,0.2)',
           margin:     '4px 4px',
           flexShrink: 0,
         }} />
@@ -183,17 +183,17 @@ export default function Sidebar() {
             borderRadius:   '12px',
             textDecoration: 'none',
             flexShrink:     0,
-            background:     'linear-gradient(135deg,rgba(155,93,229,0.2),rgba(241,91,181,0.15))',
-            border:         '1px solid rgba(155,93,229,0.35)',
+            background:     'linear-gradient(135deg,rgba(74,155,127,0.2),rgba(157,184,154,0.15))',
+            border:         '1px solid rgba(74,155,127,0.35)',
             transition:     'all 0.2s',
             boxSizing:      'border-box',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.background   = 'linear-gradient(135deg,rgba(155,93,229,0.4),rgba(241,91,181,0.3))'
-            e.currentTarget.style.boxShadow    = '0 0 14px rgba(155,93,229,0.3)'
+            e.currentTarget.style.background   = 'linear-gradient(135deg,rgba(74,155,127,0.4),rgba(157,184,154,0.3))'
+            e.currentTarget.style.boxShadow    = '0 0 14px rgba(74,155,127,0.3)'
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.background   = 'linear-gradient(135deg,rgba(155,93,229,0.2),rgba(241,91,181,0.15))'
+            e.currentTarget.style.background   = 'linear-gradient(135deg,rgba(74,155,127,0.2),rgba(157,184,154,0.15))'
             e.currentTarget.style.boxShadow    = 'none'
           }}
         >
@@ -205,12 +205,12 @@ export default function Sidebar() {
             height:         `${ICON_BOX}px`,
             flexShrink:     0,
           }}>
-            <Mail size={ICON_PX} color="#9B5DE5" strokeWidth={2} />
+            <Mail size={ICON_PX} color="#4A9B7F" strokeWidth={2} />
           </span>
           <span style={{
             fontSize:   '0.85rem',
             fontWeight: 700,
-            color:      '#9B5DE5',
+            color:      '#4A9B7F',
             opacity:    expanded ? 1 : 0,
             whiteSpace: 'nowrap',
             transition: 'opacity 0.2s ease 0.18s',
@@ -225,7 +225,7 @@ export default function Sidebar() {
       <div style={{
         width:      '1px',
         height:     '50px',
-        background: 'linear-gradient(to bottom,rgba(155,93,229,0.4),transparent)',
+        background: 'linear-gradient(to bottom,rgba(74,155,127,0.4),transparent)',
         margin:     '6px auto 0',
       }} />
     </div>

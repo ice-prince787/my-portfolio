@@ -15,14 +15,14 @@ export default function Navbar() {
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
       padding: '1rem 2rem',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      background: scrolled ? 'rgba(66,0,57,0.95)' : 'transparent',
+      background: scrolled ? 'rgba(36,30,33,0.95)' : 'transparent',
       backdropFilter: scrolled ? 'blur(10px)' : 'none',
-      borderBottom: scrolled ? '1px solid rgba(155,93,229,0.3)' : 'none',
+      borderBottom: scrolled ? '1px solid rgba(74,155,127,0.3)' : 'none',
       transition: 'all 0.3s ease'
     }}>
       <a href="#" style={{
         fontSize: '1.4rem', fontWeight: 800,
-        background: 'linear-gradient(135deg, #9B5DE5, #F15BB5)',
+        background: 'linear-gradient(135deg, #4A9B7F, #9DB89A)',
         WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
         textDecoration: 'none'
       }}>
@@ -30,7 +30,7 @@ export default function Navbar() {
       </a>
 
       <a href="#contact" style={{
-        background: 'linear-gradient(135deg, #9B5DE5, #F15BB5)',
+        background: 'linear-gradient(135deg, #4A9B7F, #9DB89A)',
         color: 'white', padding: '0.5rem 1.2rem',
         borderRadius: '8px', textDecoration: 'none',
         fontSize: '0.9rem', fontWeight: 600,

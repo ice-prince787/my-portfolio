@@ -25,16 +25,16 @@ function TiltCard({ children }: { children: React.ReactNode }) {
     const rotateX = ((y - cy) / cy) * -12
     const rotateY = ((x - cx) / cx) * 12
     card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`
-    card.style.borderColor = 'rgba(241,91,181,0.6)'
-    card.style.boxShadow = '0 20px 60px rgba(155,93,229,0.3)'
+    card.style.borderColor = 'rgba(157,184,154,0.6)'
+    card.style.boxShadow = '0 20px 60px rgba(74,155,127,0.3)'
   }
 
   const handleMouseLeave = () => {
     const card = cardRef.current
     if (!card) return
     card.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) scale(1)'
-    card.style.borderColor = 'rgba(155,93,229,0.25)'
-    card.style.boxShadow = '0 8px 32px rgba(155,93,229,0.1)'
+    card.style.borderColor = 'rgba(74,155,127,0.25)'
+    card.style.boxShadow = '0 8px 32px rgba(74,155,127,0.1)'
   }
 
   return (
@@ -45,14 +45,14 @@ function TiltCard({ children }: { children: React.ReactNode }) {
       onMouseLeave={handleMouseLeave}
       style={{
         opacity: 0,
-        background: 'rgba(155,93,229,0.08)',
-        border: '1px solid rgba(155,93,229,0.25)',
+        background: 'rgba(74,155,127,0.08)',
+        border: '1px solid rgba(74,155,127,0.25)',
         borderRadius: '20px', padding: '1.5rem',
         textAlign: 'center',
         transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.2s',
         cursor: 'default',
         willChange: 'transform',
-        boxShadow: '0 8px 32px rgba(155,93,229,0.1)',
+        boxShadow: '0 8px 32px rgba(74,155,127,0.1)',
         position: 'relative', zIndex: 2,
       }}
     >
@@ -105,7 +105,7 @@ function CubesBackground() {
     }
 
     const cubes: CubeData[] = []
-    const colors = [0x9B5DE5, 0xF15BB5, 0xFEE440, 0x7c3aed, 0xdb2777, 0x4f46e5, 0xa855f7, 0xec4899]
+    const colors = [0x4A9B7F, 0x9DB89A, 0xC4CDB8, 0x2D4F47, 0x4A9B7F, 0x2D4F47, 0xa855f7, 0xec4899]
 
     const geoOptions = [
       () => new THREE.BoxGeometry(0.6, 0.6, 0.6),
@@ -291,13 +291,13 @@ if (isWire) {
 
     // Lights
     scene.add(new THREE.AmbientLight(0xffffff, 0.6))
-const pl1 = new THREE.PointLight(0x9B5DE5, 6, 30)
+const pl1 = new THREE.PointLight(0x4A9B7F, 6, 30)
 pl1.position.set(5, 5, 6)
 scene.add(pl1)
-const pl2 = new THREE.PointLight(0xF15BB5, 6, 30)
+const pl2 = new THREE.PointLight(0x9DB89A, 6, 30)
 pl2.position.set(-5, -4, 5)
 scene.add(pl2)
-const pl3 = new THREE.PointLight(0xFEE440, 3, 20)
+const pl3 = new THREE.PointLight(0xC4CDB8, 3, 20)
 pl3.position.set(0, 0, 8)
 scene.add(pl3)
 const pl4 = new THREE.PointLight(0xffffff, 2, 25)
@@ -450,19 +450,19 @@ export default function About() {
           opacity: 0, transform: 'translateY(30px)', transition: 'all 0.6s ease',
           display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem'
         }}>
-          <div style={{ width: '40px', height: '2px', background: 'linear-gradient(90deg, #9B5DE5, #F15BB5)' }} />
-          <span style={{ color: '#F15BB5', fontWeight: 600, fontSize: '0.9rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>About Me</span>
+          <div style={{ width: '40px', height: '2px', background: 'linear-gradient(90deg, #4A9B7F, #9DB89A)' }} />
+          <span style={{ color: '#9DB89A', fontWeight: 600, fontSize: '0.9rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>About Me</span>
         </div>
 
         {/* Heading */}
         <h2 className="fade-in" style={{
           opacity: 0, transform: 'translateY(30px)', transition: 'all 0.6s ease',
           fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800,
-          marginBottom: '3rem', color: '#F6F2FF'
+          marginBottom: '3rem', color: '#C4CDB8'
         }}>
           I make things<br />
           <span style={{
-            background: 'linear-gradient(135deg, #9B5DE5, #F15BB5)',
+            background: 'linear-gradient(135deg, #4A9B7F, #9DB89A)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
           }}>that move.</span>
         </h2>
@@ -482,7 +482,7 @@ export default function About() {
                 marginBottom: '1.2rem',
                 fontStyle: i === 2 ? 'italic' : 'normal',
                 fontWeight: i === 2 ? 600 : 400,
-                color: i === 2 ? '#F6F2FF' : '#c9b8d8',
+                color: i === 2 ? '#C4CDB8' : '#9DB89A',
               }}>
                 {text}
               </p>
@@ -494,21 +494,21 @@ export default function About() {
             }}>
               {['Game Dev', 'Web Dev', 'Unity', 'React', 'Anime.js', 'Clean Architecture', 'Always Learning'].map(tag => (
                 <span key={tag} style={{
-                  background: 'rgba(155,93,229,0.15)',
-                  border: '1px solid rgba(155,93,229,0.35)',
-                  color: '#9B5DE5', borderRadius: '100px',
+                  background: 'rgba(74,155,127,0.15)',
+                  border: '1px solid rgba(74,155,127,0.35)',
+                  color: '#4A9B7F', borderRadius: '100px',
                   padding: '0.3rem 0.9rem', fontSize: '0.82rem', fontWeight: 500,
                   transition: 'all 0.2s', cursor: 'default'
                 }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.background = 'rgba(241,91,181,0.15)'
-                    e.currentTarget.style.borderColor = 'rgba(241,91,181,0.5)'
-                    e.currentTarget.style.color = '#F15BB5'
+                    e.currentTarget.style.background = 'rgba(157,184,154,0.15)'
+                    e.currentTarget.style.borderColor = 'rgba(157,184,154,0.5)'
+                    e.currentTarget.style.color = '#9DB89A'
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.background = 'rgba(155,93,229,0.15)'
-                    e.currentTarget.style.borderColor = 'rgba(155,93,229,0.35)'
-                    e.currentTarget.style.color = '#9B5DE5'
+                    e.currentTarget.style.background = 'rgba(74,155,127,0.15)'
+                    e.currentTarget.style.borderColor = 'rgba(74,155,127,0.35)'
+                    e.currentTarget.style.color = '#4A9B7F'
                   }}
                 >
                   {tag}
@@ -522,10 +522,10 @@ export default function About() {
             <div className="fade-in" style={{
               opacity: 0, transform: 'translateY(30px)', transition: 'all 0.6s ease',
               width: '130px', height: '130px', borderRadius: '50%',
-              background: 'linear-gradient(135deg, #9B5DE5, #F15BB5)',
+              background: 'linear-gradient(135deg, #4A9B7F, #9DB89A)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '3.5rem',
-              boxShadow: '0 0 50px rgba(155,93,229,0.5)',
+              boxShadow: '0 0 50px rgba(74,155,127,0.5)',
               margin: '0 auto 2.5rem',
               animation: 'floatAvatar 4s ease-in-out infinite',
             }}>
@@ -538,12 +538,12 @@ export default function About() {
                   <div style={{ fontSize: '1.8rem', marginBottom: '0.4rem' }}>{stat.icon}</div>
                   <div style={{
                     fontSize: '1.8rem', fontWeight: 800,
-                    background: 'linear-gradient(135deg, #9B5DE5, #F15BB5)',
+                    background: 'linear-gradient(135deg, #4A9B7F, #9DB89A)',
                     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
                   }}>
                     {stat.number}
                   </div>
-                  <div style={{ color: '#c9b8d8', fontSize: '0.78rem', marginTop: '0.3rem' }}>
+                  <div style={{ color: '#9DB89A', fontSize: '0.78rem', marginTop: '0.3rem' }}>
                     {stat.label}
                   </div>
                 </TiltCard>
@@ -552,15 +552,15 @@ export default function About() {
 
             <div style={{ marginTop: '1rem' }}>
               <TiltCard>
-                <div style={{ color: '#FEE440', fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.8rem', textAlign: 'left' }}>
+                <div style={{ color: '#C4CDB8', fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.8rem', textAlign: 'left' }}>
                   🔭 Currently working toward
                 </div>
                 {goals.map(goal => (
                   <div key={goal} style={{
-                    color: '#c9b8d8', fontSize: '0.88rem', textAlign: 'left',
+                    color: '#9DB89A', fontSize: '0.88rem', textAlign: 'left',
                     padding: '0.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem'
                   }}>
-                    <span style={{ color: '#9B5DE5' }}>→</span> {goal}
+                    <span style={{ color: '#4A9B7F' }}>→</span> {goal}
                   </div>
                 ))}
               </TiltCard>

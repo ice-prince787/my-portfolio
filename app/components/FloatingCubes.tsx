@@ -34,7 +34,7 @@ export default function FloatingCubes() {
     }
 
     const cubes: CubeData[] = []
-    const colors = [0x9B5DE5, 0xF15BB5, 0xFEE440, 0x7c3aed, 0xdb2777, 0x4f46e5]
+    const colors = [0x4A9B7F, 0x9DB89A, 0xC4CDB8, 0x2D4F47, 0x4A9B7F, 0x2D4F47]
 
     const geoOptions = [
       () => new THREE.BoxGeometry(0.55, 0.55, 0.55),
@@ -155,13 +155,13 @@ export default function FloatingCubes() {
 
     // Lights
     scene.add(new THREE.AmbientLight(0xffffff, 0.7))
-    const pl1 = new THREE.PointLight(0x9B5DE5, 3, 25)
+    const pl1 = new THREE.PointLight(0x4A9B7F, 3, 25)
     pl1.position.set(4, 4, 5)
     scene.add(pl1)
-    const pl2 = new THREE.PointLight(0xF15BB5, 3, 25)
+    const pl2 = new THREE.PointLight(0x9DB89A, 3, 25)
     pl2.position.set(-4, -3, 4)
     scene.add(pl2)
-    const pl3 = new THREE.PointLight(0xFEE440, 1.5, 18)
+    const pl3 = new THREE.PointLight(0xC4CDB8, 1.5, 18)
     pl3.position.set(0, -4, 3)
     scene.add(pl3)
 
