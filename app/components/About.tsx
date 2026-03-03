@@ -498,7 +498,7 @@ export default function About() {
   }, [])
 
   return (
-    <section id="about" ref={sectionRef} style={{
+    <section id="about"  ref={sectionRef} style={{
       padding: '8rem 2rem',
       position: 'relative',
       overflow: 'hidden',
@@ -587,11 +587,11 @@ export default function About() {
             <div className="fade-in" style={{
               opacity: 0, transform: 'translateY(30px)', transition: 'all 0.6s ease',
               width: '150px', height: '150px',
-              margin: '0 auto 2.5rem',
+              margin: '0 auto 1.5rem',
             }}>
               <canvas
-                width={150}
-                height={150}
+                width={120}
+                height={120}
                 ref={el => {
                   if (!el) return
                   const T = require('three')
@@ -689,7 +689,7 @@ export default function About() {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
               {stats.map((stat, i) => (
                 <PixelCard key={i}>
                   <div style={{ fontSize: '1.8rem', marginBottom: '0.4rem' }}>{stat.icon}</div>

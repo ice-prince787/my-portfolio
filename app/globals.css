@@ -20,6 +20,7 @@ html {
   scroll-behavior: smooth;
   background-color: #2E2E2E;
   color: #C4BFB0;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -27,6 +28,9 @@ body {
   color: var(--text);
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100vh;
 }
 
 ::-webkit-scrollbar {
@@ -48,4 +52,9 @@ body {
 main > div {
   position: relative;
   z-index: 1;
+}
+
+section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
