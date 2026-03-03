@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #420039;
+  --bg-light: #5a0050;
+  --accent: #9B5DE5;
+  --accent-pink: #F15BB5;
+  --accent-yellow: #FEE440;
+  --text: #F6F2FF;
+  --text-muted: #c9b8d8;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+#about, #skills, #projects, #experience, #contact {
+  position: relative;
+  z-index: 1;
+}
+
+main > div {
+  position: relative;
+  z-index: 1;
+}
