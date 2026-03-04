@@ -26,7 +26,7 @@ export default function Navbar() {
         WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
         textDecoration: 'none'
       }}>
-        Dipankar.dev
+        Dipankar.dev  
       </a>
 
       <a href="#contact" style={{

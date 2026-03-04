@@ -286,7 +286,7 @@ export default function Hero() {
 
         {/* CTA Buttons */}
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a href="#projects" style={{
+          <a href="https://dipankarr.itch.io" target="_blank" rel="noopener noreferrer" style={{
             background: 'linear-gradient(135deg, #4A9B7F, #9DB89A)',
             color: 'white', padding: '0.85rem 2rem',
             borderRadius: '12px', textDecoration: 'none',

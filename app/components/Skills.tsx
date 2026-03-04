@@ -6,15 +6,14 @@ import { useEffect, useRef } from 'react'
  * A canvas-based interactive background that simulates data pulses
  * traveling along a circuit grid.
  */
-function SkillsBackground() {
+
+function WrenchScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
+    const ctx = canvas.getContext('2d')!
     let w = canvas.width = canvas.parentElement?.clientWidth || window.innerWidth
     let h = canvas.height = canvas.parentElement?.clientHeight || window.innerHeight
 
@@ -24,107 +23,266 @@ function SkillsBackground() {
     }
     window.addEventListener('resize', onResize)
 
-    const GRID_SIZE = 60
-    const DOT_COLOR = 'rgba(74, 155, 127, 0.15)' // #4A9B7F with low opacity
-    const PULSE_COLORS = ['#4A9B7F', '#9DB89A', '#C4CDB8']
+    const HEAD_DIST = 46
 
-    type Pulse = {
-      x: number; y: number; 
-      vx: number; vy: number; 
-      length: number; 
-      life: number; maxLife: number;
-      color: string;
+    type Bolt = {
+      x: number; y: number
+      rot: number
+      screwDepth: number
+      floatOff: number
+      done: boolean
+      fadeOut: number
     }
 
-    let pulses: Pulse[] = []
+    const makeBolts = (): Bolt[] => [
+      { x: w * 0.04, y: h * 0.25, rot: 0, screwDepth: 0, floatOff: 0.0, done: false, fadeOut: 1 },
+      { x: w * 0.04, y: h * 0.55, rot: 0, screwDepth: 0, floatOff: 1.3, done: false, fadeOut: 1 },
+      { x: w * 0.04, y: h * 0.82, rot: 0, screwDepth: 0, floatOff: 2.6, done: false, fadeOut: 1 },
+      { x: w * 0.96, y: h * 0.25, rot: 0, screwDepth: 0, floatOff: 0.7, done: false, fadeOut: 1 },
+      { x: w * 0.96, y: h * 0.55, rot: 0, screwDepth: 0, floatOff: 2.0, done: false, fadeOut: 1 },
+      { x: w * 0.96, y: h * 0.82, rot: 0, screwDepth: 0, floatOff: 3.3, done: false, fadeOut: 1 },
+      { x: w * 0.50, y: h * 0.07, rot: 0, screwDepth: 0, floatOff: 0.4, done: false, fadeOut: 1 },
+    ]
+    const bolts = makeBolts()
 
-    const spawnPulse = () => {
-      const cols = Math.floor(w / GRID_SIZE)
-      const rows = Math.floor(h / GRID_SIZE)
-      const startX = Math.floor(Math.random() * cols) * GRID_SIZE
-      const startY = Math.floor(Math.random() * rows) * GRID_SIZE
-
-      const dirs = [
-        { vx: 2, vy: 0 }, { vx: -2, vy: 0 },
-        { vx: 0, vy: 2 }, { vx: 0, vy: -2 }
-      ]
-      const dir = dirs[Math.floor(Math.random() * dirs.length)]
-
-      pulses.push({
-        x: startX, y: startY,
-        vx: dir.vx, vy: dir.vy,
-        length: 20 + Math.random() * 40,
-        life: 0, maxLife: 100 + Math.random() * 150,
-        color: PULSE_COLORS[Math.floor(Math.random() * PULSE_COLORS.length)]
-      })
+    const wr = {
+      x: 180, y: 140,
+      angle: 0.5,
+      vx: 0.6, vy: 0.4,
+      rotVel: 0.007,
+      dragging: false,
+      offX: 0, offY: 0,
+      snapped: null as Bolt | null,
+      prevMouseAngle: 0,
     }
 
-    let frame: number
-    const animate = () => {
-      frame = requestAnimationFrame(animate)
+    const mouse = { x: -999, y: -999 }
+
+    const onMouseDown = (e: MouseEvent) => {
+      const r = canvas.getBoundingClientRect()
+      const mx = e.clientX - r.left, my = e.clientY - r.top
+      if (Math.hypot(mx - wr.x, my - wr.y) < 65) {
+        wr.dragging = true
+        wr.offX = wr.x - mx; wr.offY = wr.y - my
+        wr.vx = 0; wr.vy = 0
+        if (wr.snapped) {
+          wr.prevMouseAngle = Math.atan2(my - wr.snapped.y, mx - wr.snapped.x)
+        }
+      }
+    }
+
+    const onMouseMove = (e: MouseEvent) => {
+      const r = canvas.getBoundingClientRect()
+      mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top
+      if (!wr.dragging) return
+
+      if (wr.snapped) {
+        const bolt = wr.snapped
+        const mouseAngle = Math.atan2(mouse.y - bolt.y, mouse.x - bolt.x)
+        let delta = mouseAngle - wr.prevMouseAngle
+        if (delta >  Math.PI) delta -= Math.PI * 2
+        if (delta < -Math.PI) delta += Math.PI * 2
+
+        // Wrench BODY swings around bolt — head stays pinned on bolt
+        wr.angle += delta
+        bolt.rot  += delta
+        if (delta > 0.001) {
+          bolt.screwDepth = Math.min(1, bolt.screwDepth + delta * 0.18)
+        }
+        // Reposition wrench so head stays locked on bolt
+        wr.x = bolt.x - Math.cos(wr.angle) * HEAD_DIST
+        wr.y = bolt.y - Math.sin(wr.angle) * HEAD_DIST
+        wr.prevMouseAngle = mouseAngle
+      } else {
+        wr.x = mouse.x + wr.offX
+        wr.y = mouse.y + wr.offY
+      }
+    }
+
+    const onMouseUp = () => {
+      if (wr.dragging && !wr.snapped) { wr.vx = 0.3; wr.vy = 0.3 }
+      wr.dragging = false
+    }
+
+    window.addEventListener('mousedown', onMouseDown)
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+
+    const drawWrench = (x: number, y: number, angle: number, glow: boolean) => {
+      ctx.save()
+      ctx.translate(x, y); ctx.rotate(angle)
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round'
+      const col = glow ? '#4A9B7F' : '#9DB89A'
+      if (glow) { ctx.shadowColor = '#4A9B7F'; ctx.shadowBlur = 22 }
+      ctx.beginPath(); ctx.moveTo(-38, 0); ctx.lineTo(HEAD_DIST, 0)
+      ctx.strokeStyle = col; ctx.lineWidth = 7; ctx.stroke()
+      ctx.beginPath(); ctx.arc(HEAD_DIST, 0, 13, 0, Math.PI * 2)
+      ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke()
+      ctx.beginPath()
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2
+        i === 0 ? ctx.moveTo(HEAD_DIST + Math.cos(a)*7, Math.sin(a)*7)
+                : ctx.lineTo(HEAD_DIST + Math.cos(a)*7, Math.sin(a)*7)
+      }
+      ctx.closePath(); ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke()
+      ctx.beginPath(); ctx.arc(-38, 0, 9, 0, Math.PI * 2)
+      ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke()
+      ctx.shadowBlur = 0; ctx.restore()
+    }
+
+    const R = 17
+    const drawBolt = (bolt: Bolt, t: number) => {
+      if (bolt.fadeOut <= 0) return
+      const floatY = Math.sin(t + bolt.floatOff) * 5
+      const bx = bolt.x, by = bolt.y + floatY
+      const scale = bolt.screwDepth >= 1 ? Math.max(0, 1 - (bolt.screwDepth - 1) * 6) : 1
+
+      ctx.save()
+      ctx.globalAlpha = bolt.fadeOut
+      ctx.translate(bx, by); ctx.rotate(bolt.rot); ctx.scale(scale, scale)
+      const col = bolt.screwDepth > 0 ? '#4A9B7F' : '#9DB89A'
+      if (bolt.screwDepth > 0 && bolt.screwDepth < 1) { ctx.shadowColor = '#4A9B7F'; ctx.shadowBlur = 18 }
+      ctx.beginPath()
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 - Math.PI / 6
+        i === 0 ? ctx.moveTo(Math.cos(a)*R, Math.sin(a)*R)
+                : ctx.lineTo(Math.cos(a)*R, Math.sin(a)*R)
+      }
+      ctx.closePath()
+      ctx.fillStyle = col + '30'; ctx.fill()
+      ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke()
+      ctx.strokeStyle = '#2D4F47'; ctx.lineWidth = 2.5
+      ctx.beginPath()
+      ctx.moveTo(-R*0.55,0); ctx.lineTo(R*0.55,0)
+      ctx.moveTo(0,-R*0.55); ctx.lineTo(0,R*0.55)
+      ctx.stroke()
+      ctx.shadowBlur = 0; ctx.restore()
+
+      // Speech bubble (unrotated)
+      if (bolt.fadeOut > 0.2) {
+        const label = bolt.screwDepth >= 1 ? 'Thanks!! 🔩' : 'Screw me human!'
+        const isActive = wr.snapped === bolt || bolt.screwDepth > 0
+        ctx.save()
+        ctx.globalAlpha = bolt.fadeOut
+        ctx.font = '600 10px sans-serif'
+        const tw = ctx.measureText(label).width
+        const bw = tw + 14, bh = 20
+        const lx = bx - bw/2, ly = by - R - bh - 12
+        ctx.fillStyle = isActive ? 'rgba(74,155,127,0.9)' : 'rgba(36,30,33,0.88)'
+        ctx.strokeStyle = isActive ? '#4A9B7F' : '#9DB89A44'
+        ctx.lineWidth = 1.5
+        ctx.beginPath(); ctx.roundRect(lx, ly, bw, bh, 5); ctx.fill(); ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(bx-4, ly+bh); ctx.lineTo(bx+4, ly+bh); ctx.lineTo(bx, ly+bh+5)
+        ctx.closePath()
+        ctx.fillStyle = isActive ? 'rgba(74,155,127,0.9)' : 'rgba(36,30,33,0.88)'; ctx.fill()
+        ctx.fillStyle = '#C4CDB8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+        ctx.fillText(label, bx, ly + bh/2)
+        ctx.restore()
+      }
+    }
+
+    const SNAP_DIST = 52
+    let frameId: number
+
+    const tick = (t: number) => {
+      frameId = requestAnimationFrame(tick)
       ctx.clearRect(0, 0, w, h)
 
-      // 1. Draw static grid dots
-      ctx.fillStyle = DOT_COLOR
-      for (let x = 0; x <= w; x += GRID_SIZE) {
-        for (let y = 0; y <= h; y += GRID_SIZE) {
-          ctx.beginPath()
-          ctx.arc(x, y, 1.5, 0, Math.PI * 2)
-          ctx.fill()
+      // Starfield
+      ctx.fillStyle = 'rgba(196,205,184,0.06)'
+      for (let i = 0; i < 55; i++) {
+        ctx.beginPath(); ctx.arc((i*179+33)%w, (i*113+55)%h, 1, 0, Math.PI*2); ctx.fill()
+      }
+
+      const tt = t * 0.001
+
+      // Fade done bolts
+      for (const bolt of bolts) {
+        if (bolt.done) bolt.fadeOut = Math.max(0, bolt.fadeOut - 0.012)
+      }
+
+      // Free-float (About-section style)
+      if (!wr.dragging && !wr.snapped) {
+        wr.x += wr.vx; wr.y += wr.vy
+        wr.vy += 0.004; wr.vx *= 0.998
+        wr.angle += wr.rotVel  // spins on its OWN axis while floating freely
+        if (wr.x < 45)   { wr.x = 45;   wr.vx =  Math.abs(wr.vx) * 0.8 }
+        if (wr.x > w-45) { wr.x = w-45; wr.vx = -Math.abs(wr.vx) * 0.8 }
+        if (wr.y < 45)   { wr.y = 45;   wr.vy =  Math.abs(wr.vy) * 0.8 }
+        if (wr.y > h-45) { wr.y = h-45; wr.vy = -Math.abs(wr.vy) * 0.6 }
+      }
+
+      // Head position
+      const headX = wr.x + Math.cos(wr.angle) * HEAD_DIST
+      const headY = wr.y + Math.sin(wr.angle) * HEAD_DIST
+
+      // Auto-snap when head gets close to a bolt
+      if (!wr.snapped) {
+        for (const bolt of bolts) {
+          if (bolt.done) continue
+          const floatY = Math.sin(tt + bolt.floatOff) * 5
+          if (Math.hypot(headX - bolt.x, headY - (bolt.y + floatY)) < SNAP_DIST) {
+            wr.snapped = bolt
+            wr.vx = 0; wr.vy = 0; wr.rotVel = 0
+            wr.x = bolt.x - Math.cos(wr.angle) * HEAD_DIST
+            wr.y = (bolt.y + floatY) - Math.sin(wr.angle) * HEAD_DIST
+            wr.prevMouseAngle = Math.atan2(mouse.y - bolt.y, mouse.x - bolt.x)
+            break
+          }
         }
       }
 
-      // 2. Spawn new pulses
-      if (Math.random() < 0.08) spawnPulse()
-
-      // 3. Update & Draw pulses
-      for (let i = pulses.length - 1; i >= 0; i--) {
-        const p = pulses[i]
-        p.life++
-        p.x += p.vx
-        p.y += p.vy
-
-        const progress = p.life / p.maxLife
-        const opacity = progress < 0.2 ? progress * 5 : progress > 0.8 ? (1 - progress) * 5 : 1
-
-        ctx.beginPath()
-        ctx.strokeStyle = p.color
-        ctx.lineWidth = 2
-        ctx.globalAlpha = Math.max(0, opacity * 0.6) 
-        
-        ctx.moveTo(p.x, p.y)
-        ctx.lineTo(p.x - p.vx * p.length * 0.2, p.y - p.vy * p.length * 0.2)
-        ctx.stroke()
-        ctx.globalAlpha = 1
-
-        if (p.life >= p.maxLife || p.x < 0 || p.x > w || p.y < 0 || p.y > h) {
-          pulses.splice(i, 1)
-        }
+      // Keep head locked on bolt when snapped & not dragging
+      if (wr.snapped && !wr.dragging) {
+        const bolt = wr.snapped
+        const floatY = Math.sin(tt + bolt.floatOff) * 5
+        wr.x = bolt.x - Math.cos(wr.angle) * HEAD_DIST
+        wr.y = (bolt.y + floatY) - Math.sin(wr.angle) * HEAD_DIST
       }
+
+      // Bolt fully screwed → release wrench, fly away
+      if (wr.snapped && wr.snapped.screwDepth >= 1) {
+        wr.snapped.done = true
+        wr.snapped = null
+        wr.vx = (Math.random() - 0.5) * 1.5
+        wr.vy = -1.2
+        wr.rotVel = 0.015
+      }
+
+      for (const bolt of bolts) drawBolt(bolt, tt)
+      drawWrench(wr.x, wr.y, wr.angle, wr.snapped !== null)
+
+      const distToWrench = Math.hypot(mouse.x - wr.x, mouse.y - wr.y)
+      document.body.style.cursor = wr.dragging ? 'grabbing' : distToWrench < 65 ? 'grab' : 'default'
     }
 
-    animate()
+    requestAnimationFrame(tick)
 
     return () => {
-      cancelAnimationFrame(frame)
+      cancelAnimationFrame(frameId)
+      window.removeEventListener('mousedown', onMouseDown)
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
       window.removeEventListener('resize', onResize)
+      document.body.style.cursor = 'default'
     }
   }, [])
 
   return (
-    <canvas 
-      ref={canvasRef} 
+    <canvas
+      ref={canvasRef}
       style={{
         position: 'absolute',
         top: 0, left: 0,
         width: '100%', height: '100%',
-        pointerEvents: 'none',
         zIndex: 0,
-        opacity: 0.7
-      }} 
+        pointerEvents: 'none',
+      }}
     />
   )
 }
+
 
 const skillCategories = [
   {
@@ -132,12 +290,12 @@ const skillCategories = [
     icon: '🌐',
     color: '#4A9B7F',
     skills: [
-      { name: 'HTML',       level: 90 },
-      { name: 'CSS',        level: 85 },
-      { name: 'JavaScript', level: 80 },
-      { name: 'React',      level: 75 },
-      { name: 'JSX',        level: 75 },
-      { name: 'Anime.js',   level: 70 },
+      { name: 'HTML',              tag: 'Strong'      },
+      { name: 'CSS',               tag: 'Strong'      },
+      { name: 'JavaScript',        tag: 'Comfortable' },
+      { name: 'React',             tag: 'Comfortable' },
+      { name: 'Next.js',           tag: 'Learning'    },
+      { name: 'Anime.js',          tag: 'Comfortable' },
     ]
   },
   {
@@ -145,12 +303,12 @@ const skillCategories = [
     icon: '🎮',
     color: '#9DB89A',
     skills: [
-      { name: 'Unity (URP)',         level: 80 },
-      { name: 'C#',                  level: 75 },
-      { name: 'Python',              level: 70 },
-      { name: 'Pygame',              level: 70 },
-      { name: 'Game Architecture',   level: 72 },
-      { name: 'Movement Systems',    level: 78 },
+      { name: 'Unity (URP)',        tag: 'Strong'      },
+      { name: 'C#',                 tag: 'Comfortable' },
+      { name: 'Python',             tag: 'Comfortable' },
+      { name: 'Pygame',             tag: 'Comfortable' },
+      { name: 'Game Architecture',  tag: 'Learning'    },
+      { name: 'Movement Systems',   tag: 'Strong'      },
     ]
   },
   {
@@ -158,63 +316,55 @@ const skillCategories = [
     icon: '🛠',
     color: '#C4CDB8',
     skills: [
-      { name: 'Git',          level: 65 },
-      { name: 'VS Code',      level: 90 },
-      { name: 'Unity Editor', level: 80 },
-      { name: 'Figma',        level: 60 },
+      { name: 'Git',                tag: 'Comfortable' },
+      { name: 'VS Code',            tag: 'Strong'      },
+      { name: 'Unity Editor',       tag: 'Strong'      },
+      { name: 'Figma',              tag: 'Learning'    },
+      { name: 'Three.js',           tag: 'Learning'    },
     ]
   },
 ]
 
-function SkillBar({ name, level, color, index }: {
-  name: string; level: number; color: string; index: number
-}) {
-  const barRef = useRef<HTMLDivElement>(null)
+const tagStyles: Record<string, { bg: string; color: string; label: string }> = {
+  Strong:      { bg: 'rgba(74,155,127,0.18)',  color: '#4A9B7F',  label: 'Strong'      },
+  Comfortable: { bg: 'rgba(157,184,154,0.15)', color: '#9DB89A',  label: 'Comfortable' },
+  Learning:    { bg: 'rgba(196,205,184,0.12)', color: '#C4CDB8',  label: 'Learning'    },
+}
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            setTimeout(() => {
-              if (barRef.current) {
-                barRef.current.style.width = `${level}%`
-              }
-            }, index * 80)
-          }
-        })
-      },
-      { threshold: 0.3 }
-    )
-    if (barRef.current) observer.observe(barRef.current.parentElement!)
-    return () => observer.disconnect()
-  }, [level, index])
-
+function SkillTag({ name, tag }: { name: string; tag: string }) {
+  const style = tagStyles[tag]
   return (
-    <div style={{ marginBottom: '1rem' }}>
-      <div style={{
-        display: 'flex', justifyContent: 'space-between',
-        marginBottom: '0.4rem',
+    <div style={{
+      display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '0.5rem 0.75rem',
+      borderRadius: '10px',
+      marginBottom: '0.5rem',
+      background: 'rgba(255,255,255,0.03)',
+      border: '1px solid rgba(74,155,127,0.1)',
+      transition: 'all 0.2s',
+    }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = 'rgba(74,155,127,0.07)'
+        e.currentTarget.style.borderColor = 'rgba(74,155,127,0.25)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+        e.currentTarget.style.borderColor = 'rgba(74,155,127,0.1)'
+      }}
+    >
+      <span style={{ color: '#C4CDB8', fontSize: '0.88rem', fontWeight: 500 }}>{name}</span>
+      <span style={{
+        fontSize: '0.72rem', fontWeight: 700,
+        padding: '0.18rem 0.6rem',
+        borderRadius: '100px',
+        background: style.bg,
+        color: style.color,
+        letterSpacing: '0.04em',
+        border: `1px solid ${style.color}44`,
       }}>
-        <span style={{ color: '#C4CDB8', fontSize: '0.9rem', fontWeight: 500 }}>{name}</span>
-        <span style={{ color: color, fontSize: '0.85rem', fontWeight: 700 }}>{level}%</span>
-      </div>
-      <div style={{
-        height: '6px', borderRadius: '100px',
-        background: 'rgba(74,155,127,0.15)',
-        overflow: 'hidden',
-      }}>
-        <div
-          ref={barRef}
-          style={{
-            height: '100%', width: '0%',
-            borderRadius: '100px',
-            background: `linear-gradient(90deg, ${color}, ${color}aa)`,
-            transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
-            boxShadow: `0 0 8px ${color}66`,
-          }}
-        />
-      </div>
+        {style.label}
+      </span>
     </div>
   )
 }
@@ -249,8 +399,8 @@ export default function Skills() {
       overflow: 'hidden', // Keeps the canvas contained
     }}>
       
-      {/* BACKGROUND CANVAS */}
-      <SkillsBackground />
+      {/* WRENCH & BOLTS BACKGROUND */}
+      <WrenchScene />
 
       {/* CONTENT CONTAINER */}
       <div style={{
@@ -335,14 +485,12 @@ export default function Skills() {
                 </h3>
               </div>
 
-              {/* Skill bars */}
+              {/* Skill tags */}
               {cat.skills.map((skill, si) => (
-                <SkillBar
+                <SkillTag
                   key={si}
                   name={skill.name}
-                  level={skill.level}
-                  color={cat.color}
-                  index={si}
+                  tag={skill.tag}
                 />
               ))}
             </div>
@@ -360,5 +508,4 @@ export default function Skills() {
         </div>
       </div>
     </section>
-  )
-}
+  )}

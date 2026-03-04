@@ -28,8 +28,6 @@ body {
   color: var(--text);
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
-  scroll-snap-type: y mandatory;
-  overflow-y: scroll;
   height: 100vh;
 }
 
@@ -57,4 +55,8 @@ main > div {
 section {
   scroll-snap-align: start;
   scroll-snap-stop: always;
+}
+
+* {
+  user-select: none;
 }

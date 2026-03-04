@@ -706,22 +706,6 @@ export default function About() {
                 </PixelCard>
               ))}
             </div>
-
-            <div style={{ marginTop: '1rem' }}>
-              <PixelCard>
-                <div style={{ color: '#C4CDB8', fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.8rem', textAlign: 'left' }}>
-                  🔭 Currently working toward
-                </div>
-                {goals.map(goal => (
-                  <div key={goal} style={{
-                    color: '#9DB89A', fontSize: '0.88rem', textAlign: 'left',
-                    padding: '0.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem'
-                  }}>
-                    <span style={{ color: '#4A9B7F' }}>→</span> {goal}
-                  </div>
-                ))}
-              </PixelCard>
-            </div>
           </div>
         </div>
       </div>
