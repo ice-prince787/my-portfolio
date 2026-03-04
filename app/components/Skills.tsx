@@ -34,16 +34,45 @@ function WrenchScene() {
       fadeOut: number
     }
 
-    const makeBolts = (): Bolt[] => [
-      { x: w * 0.04, y: h * 0.25, rot: 0, screwDepth: 0, floatOff: 0.0, done: false, fadeOut: 1 },
-      { x: w * 0.04, y: h * 0.55, rot: 0, screwDepth: 0, floatOff: 1.3, done: false, fadeOut: 1 },
-      { x: w * 0.04, y: h * 0.82, rot: 0, screwDepth: 0, floatOff: 2.6, done: false, fadeOut: 1 },
-      { x: w * 0.96, y: h * 0.25, rot: 0, screwDepth: 0, floatOff: 0.7, done: false, fadeOut: 1 },
-      { x: w * 0.96, y: h * 0.55, rot: 0, screwDepth: 0, floatOff: 2.0, done: false, fadeOut: 1 },
-      { x: w * 0.96, y: h * 0.82, rot: 0, screwDepth: 0, floatOff: 3.3, done: false, fadeOut: 1 },
-      { x: w * 0.50, y: h * 0.07, rot: 0, screwDepth: 0, floatOff: 0.4, done: false, fadeOut: 1 },
+    // Margin positions — bolts only here, never over cards
+    // Fixed slots — each has a permanent position and an occupied flag
+    // Positions chosen to be in safe margins, never behind navbar or cards
+    type Slot = { x: number; y: number; occupied: boolean }
+    const slots: Slot[] = [
+      { x: w * 0.04, y: h * 0.20, occupied: false },
+      { x: w * 0.04, y: h * 0.42, occupied: false },
+      { x: w * 0.04, y: h * 0.65, occupied: false },
+      { x: w * 0.04, y: h * 0.85, occupied: false },
+      { x: w * 0.96, y: h * 0.20, occupied: false },
+      { x: w * 0.96, y: h * 0.42, occupied: false },
+      { x: w * 0.96, y: h * 0.65, occupied: false },
+      { x: w * 0.96, y: h * 0.85, occupied: false },
+      { x: w * 0.30, y: h * 0.16, occupied: false },
+      { x: w * 0.70, y: h * 0.16, occupied: false },
+      { x: w * 0.50, y: h * 0.16, occupied: false },
     ]
-    const bolts = makeBolts()
+
+    // Spawn a bolt in a random FREE slot — if all full, do nothing
+    const spawnBolt = (): Bolt | null => {
+      const freeSlots = slots.filter(s => !s.occupied)
+      if (freeSlots.length === 0) return null
+      const slot = freeSlots[Math.floor(Math.random() * freeSlots.length)]
+      slot.occupied = true
+      return { x: slot.x, y: slot.y, rot: Math.random() * Math.PI * 2, screwDepth: 0, floatOff: Math.random() * Math.PI * 2, done: false, fadeOut: 0 }
+    }
+
+    // Free the slot when a bolt is screwed
+    const freeSlot = (bolt: Bolt) => {
+      const slot = slots.find(s => Math.round(s.x) === Math.round(bolt.x) && Math.round(s.y) === Math.round(bolt.y))
+      if (slot) slot.occupied = false
+    }
+
+    // Start with 3 bolts in fixed slots
+    const bolts: Bolt[] = []
+    ;[ slots[1], slots[5], slots[10] ].forEach(slot => {
+      slot.occupied = true
+      bolts.push({ x: slot.x, y: slot.y, rot: 0, screwDepth: 0, floatOff: Math.random() * Math.PI * 2, done: false, fadeOut: 1 })
+    })
 
     const wr = {
       x: 180, y: 140,
@@ -197,7 +226,7 @@ function WrenchScene() {
 
       const tt = t * 0.001
 
-      // Fade done bolts
+      // Fade done bolts out, fade new bolts in
       for (const bolt of bolts) {
         if (bolt.done) bolt.fadeOut = Math.max(0, bolt.fadeOut - 0.012)
       }
@@ -241,13 +270,26 @@ function WrenchScene() {
         wr.y = (bolt.y + floatY) - Math.sin(wr.angle) * HEAD_DIST
       }
 
-      // Bolt fully screwed → release wrench, fly away
+      // Bolt fully screwed → free its slot, release wrench, spawn new bolt in a different free slot
       if (wr.snapped && wr.snapped.screwDepth >= 1) {
-        wr.snapped.done = true
+        const screwed = wr.snapped
+        freeSlot(screwed)   // mark slot as free again
+        screwed.done = true
         wr.snapped = null
         wr.vx = (Math.random() - 0.5) * 1.5
         wr.vy = -1.2
         wr.rotVel = 0.015
+        // Spawn in a different free slot (not the same one — freeSlot already freed it
+        // but spawnBolt picks randomly so we temporarily re-occupy to avoid same spot)
+        screwed.done = true
+        const fresh = spawnBolt()   // picks any free slot
+        if (fresh) {
+          bolts.push(fresh)
+          const fadeInInterval = setInterval(() => {
+            fresh.fadeOut = Math.min(1, fresh.fadeOut + 0.04)
+            if (fresh.fadeOut >= 1) clearInterval(fadeInInterval)
+          }, 16)
+        }
       }
 
       for (const bolt of bolts) drawBolt(bolt, tt)
