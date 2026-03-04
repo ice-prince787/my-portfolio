@@ -18,24 +18,23 @@
 
 html {
   scroll-behavior: smooth;
-  background-color: #2E2E2E;
+  background-color: #241E21;
   color: #C4BFB0;
-  scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--bg);
+  background-color: #241E21;
   color: var(--text);
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
-  height: 100vh;
+  /* zoom is applied via JS in layout.tsx */
 }
 
 ::-webkit-scrollbar {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg);
+  background: #241E21;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--accent);

@@ -1,70 +1,61 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
-import { Layers, Image as ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react'
-import { motion, AnimatePresence, Variants } from 'framer-motion'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { BSOD_MAP, BSODInfo } from './pc-components/types'
+import DraggableComponent from './pc-components/DraggableComponent'
+import BSOD from './pc-components/BSOD'
+import Motherboard from './pc-components/Motherboard'
+import GPU from './pc-components/GPU'
+import RAM from './pc-components/RAM'
+import CPU from './pc-components/CPU'
+import CPUCooler from './pc-components/CPUCooler'
+import SSD from './pc-components/SSD'
+import PSU from './pc-components/PSU'
 
-// Updated Project Data with your specific image names
-const projects = [
-  {
-    title: 'Neon Dash',
-    description: 'Synthwave endless runner built in Unity with smooth movement, scoring system and neon bloom visuals.',
-    tech: ['Unity', 'C#', 'URP'],
-    screenshots: ['/neonrunner1.png', '/neonrunner2.png']
-  },
-  {
-    title: 'Brick Breaker',
-    description: 'A classic arcade experience reimagined with physics-based collisions, power-ups, and progressive difficulty levels.',
-    tech: ['C#', 'Unity', 'Game Physics'],
-    screenshots: ['/brickbreaker1.png', '/brickbreaker2.png']
-  }
-]
+const COMPONENTS = ['gpu', 'ram1', 'ram2', 'cpu', 'cooler', 'ssd', 'psu'] as const
+type ComponentId = typeof COMPONENTS[number]
 
-function ProjectBackground() {
-  return (
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.3, overflow: 'hidden' }}>
-      {/* Background Grid */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        background: `
-          linear-gradient(rgba(74, 155, 127, 0.05) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(74, 155, 127, 0.05) 1px, transparent 1px)
-        `,
-        backgroundSize: '80px 80px'
-      }} />
-
-      {/* Dynamic Multi-Angle Beams */}
-      {[...Array(4)].map((_, i) => (
-        <div key={i} className={`beam beam-${i}`} style={{
-          position: 'absolute',
-          height: '1px',
-          width: '100%',
-          background: 'linear-gradient(90deg, transparent, #4A9B7F, transparent)',
-          opacity: 0,
-          transform: `rotate(${i * 45}deg)`,
-        }} />
-      ))}
-
-      <style>{`
-        @keyframes sweep {
-          0% { transform: translate(-100%, -100%) rotate(var(--rot)); opacity: 0; }
-          20% { opacity: 0.4; }
-          80% { opacity: 0.4; }
-          100% { transform: translate(100%, 100%) rotate(var(--rot)); opacity: 0; }
-        }
-        .beam-0 { --rot: 45deg; animation: sweep 12s linear infinite; top: 0; left: 0; }
-        .beam-1 { --rot: -45deg; animation: sweep 15s linear infinite 2s; top: 0; right: 0; }
-        .beam-2 { --rot: 10deg; animation: sweep 10s linear infinite 5s; bottom: 10%; left: 0; }
-        .beam-3 { --rot: -20deg; animation: sweep 18s linear infinite 1s; top: 30%; right: 0; }
-      `}</style>
-    </div>
-  )
+// Map each component id to its BSOD key
+const BSOD_KEY: Record<ComponentId, string> = {
+  gpu: 'gpu', ram1: 'ram', ram2: 'ram2', cpu: 'cpu',
+  cooler: 'cooler', ssd: 'ssd', psu: 'psu',
 }
+
+const LABELS: Record<ComponentId, string> = {
+  gpu: 'GPU', ram1: 'RAM #1', ram2: 'RAM #2', cpu: 'CPU',
+  cooler: 'CPU Cooler', ssd: 'SSD', psu: 'PSU',
+}
+
+const SLOTS: Record<ComponentId, React.CSSProperties> = {
+  cpu:    { left: 30,  top: 60,  width: 90,  height: 90 },
+  cooler: { left: 15,  top: 45,  width: 120, height: 120 },
+  ram1:   { left: 188, top: 60,  width: 28,  height: 130 },
+  ram2:   { left: 226, top: 60,  width: 28,  height: 130 },
+  gpu:    { left: 30,  top: 232, width: 220, height: 80 },
+  ssd:    { left: 30,  top: 322, width: 160, height: 32 },
+  psu:    { left: 390, top: 360, width: 130, height: 70 },
+}
+
+type RemovedState = Record<ComponentId, boolean>
+const INITIAL: RemovedState = { gpu: false, ram1: false, ram2: false, cpu: false, cooler: false, ssd: false, psu: false }
 
 export default function Projects() {
   const sectionRef = useRef<HTMLDivElement>(null)
-  const [activeGallery, setActiveGallery] = useState<string[] | null>(null)
-  const [[page, direction], setPage] = useState([0, 0])
+  const [removed, setRemoved] = useState<RemovedState>(INITIAL)
+  const [bsod, setBsod] = useState<BSODInfo | null>(null)
+  const [bootAnim, setBootAnim] = useState(false)
+
+  const handleRemove = useCallback((id: string) => {
+    const cid = id as ComponentId
+    setRemoved(prev => ({ ...prev, [cid]: true }))
+    setTimeout(() => setBsod(BSOD_MAP[BSOD_KEY[cid]]), 220)
+  }, [])
+
+  const handleRestart = () => {
+    setBsod(null)
+    setBootAnim(true)
+    setRemoved(INITIAL)
+    setTimeout(() => setBootAnim(false), 1800)
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -74,162 +65,154 @@ export default function Projects() {
             setTimeout(() => {
               (el as HTMLElement).style.opacity = '1'
               ;(el as HTMLElement).style.transform = 'translateY(0)'
-            }, i * 150)
+            }, i * 120)
           })
         }
       })
-    }, { threshold: 0.1 })
+    }, { threshold: 0.05 })
     if (sectionRef.current) observer.observe(sectionRef.current)
     return () => observer.disconnect()
   }, [])
 
-  const paginate = (newDirection: number) => {
-    if (!activeGallery) return
-    const nextImage = (page + newDirection + activeGallery.length) % activeGallery.length
-    setPage([nextImage, newDirection])
-  }
-
-  // Animation Variants with Explicit Typing to solve the TS error
-  const imageVariants: Variants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 300 : -300,
-      opacity: 0,
-      scale: 0.95
-    }),
-    center: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1,
-      scale: 1,
-      transition: {
-        x: { type: "spring", stiffness: 300, damping: 30 },
-        opacity: { duration: 0.2 }
-      }
-    },
-    exit: (direction: number) => ({
-      zIndex: 0,
-      x: direction < 0 ? 300 : -300,
-      opacity: 0,
-      scale: 0.95,
-      transition: {
-        x: { type: "spring", stiffness: 300, damping: 30 },
-        opacity: { duration: 0.2 }
-      }
-    })
-  }
+  const anyRemoved = Object.values(removed).some(Boolean)
 
   return (
-    <section id="projects" ref={sectionRef} style={{ padding: '8rem 2rem', position: 'relative', overflow: 'hidden', background: '#241E21' }}>
-      <ProjectBackground />
+    <section id="projects" ref={sectionRef} style={{
+      padding: '6rem 2rem', position: 'relative', overflow: 'hidden',
+      minHeight: '100vh', background: '#0a0d09',
+    }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 40%, rgba(74,155,127,0.04) 0%, transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(45,79,71,0.06) 0%, transparent 50%)', pointerEvents: 'none' }} />
 
-      <div style={{ maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <div className="fade-up" style={{ opacity: 0, transform: 'translateY(30px)', transition: 'all 0.8s ease', marginBottom: '4rem' }}>
+      {bsod && <BSOD info={bsod} onRestart={handleRestart} />}
+
+      {bootAnim && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 8000, background: '#000', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', animation: 'bootFade 1.8s ease forwards' }}>
+          <div style={{ color: '#4A9B7F', fontFamily: 'monospace', fontSize: '1rem', marginBottom: '1rem' }}>ASUS ROG BIOS — System Restart...</div>
+          <div style={{ color: '#9DB89A', fontFamily: 'monospace', fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.4rem' }}>✓ CPU detected — Intel i9-13900K</div>
+          <div style={{ color: '#9DB89A', fontFamily: 'monospace', fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.4rem' }}>✓ RAM detected — 32GB DDR5</div>
+          <div style={{ color: '#9DB89A', fontFamily: 'monospace', fontSize: '0.75rem', opacity: 0.7, marginBottom: '0.4rem' }}>✓ GPU detected — RTX 4090</div>
+          <div style={{ color: '#9DB89A', fontFamily: 'monospace', fontSize: '0.75rem', opacity: 0.7 }}>✓ Boot device found — Samsung 990 Pro</div>
+        </div>
+      )}
+
+      <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+
+        {/* Header */}
+        <div className="fade-up" style={{ opacity: 0, transform: 'translateY(30px)', transition: 'all 0.7s ease', marginBottom: '3rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-            <div style={{ width: '40px', height: '2px', background: '#4A9B7F' }} />
-            <span style={{ color: '#9DB89A', fontWeight: 600, fontSize: '0.9rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Portfolio</span>
+            <div style={{ width: 40, height: 2, background: 'linear-gradient(90deg, #4A9B7F, #9DB89A)' }} />
+            <span style={{ color: '#9DB89A', fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Interactive</span>
           </div>
-          <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 800, color: '#C4CDB8', margin: 0 }}>
-            Featured <span style={{ color: '#4A9B7F' }}>Projects</span>
+          <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800, color: '#C4CDB8', margin: 0, marginBottom: '0.5rem' }}>
+            My <span style={{ background: 'linear-gradient(135deg, #4A9B7F, #9DB89A)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>PC Build.(Projects)</span>
           </h2>
+          <p style={{ color: '#9DB89A', fontSize: '0.9rem', margin: 0, opacity: 0.8 }}>
+            🖱 Drag any component out of the case to pull it — each one has a project inside.
+          </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2.5rem' }}>
-          {projects.map((proj, i) => (
-            <div key={i} className="fade-up" style={{
-              opacity: 0, transform: 'translateY(40px)', transition: 'all 0.8s cubic-bezier(0.2, 1, 0.3, 1)',
-              background: 'rgba(45, 79, 71, 0.15)', border: '1px solid rgba(74, 155, 127, 0.2)',
-              borderRadius: '24px', overflow: 'hidden', backdropFilter: 'blur(10px)',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#4A9B7F'; e.currentTarget.style.transform = 'translateY(-10px)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(74, 155, 127, 0.2)'; e.currentTarget.style.transform = 'translateY(0)' }}>
-              <div style={{ height: '240px', width: '100%', background: '#1A1A1A', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(74, 155, 127, 0.3)' }}>
-                  <Layers size={64} />
-                </div>
-              </div>
-              <div style={{ padding: '2rem' }}>
-                <h3 style={{ color: '#C4CDB8', fontSize: '1.5rem', marginBottom: '0.75rem', fontWeight: 700 }}>{proj.title}</h3>
-                <p style={{ color: '#9DB89A', lineHeight: 1.6, marginBottom: '1.5rem', fontSize: '0.95rem' }}>{proj.description}</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '2.5rem' }}>
-                  {proj.tech.map(t => (
-                    <span key={t} style={{ padding: '4px 12px', borderRadius: '6px', fontSize: '0.75rem', background: 'rgba(74, 155, 127, 0.1)', color: '#4A9B7F', border: '1px solid rgba(74, 155, 127, 0.2)', fontWeight: 600 }}>{t}</span>
-                  ))}
-                </div>
-                <button 
-                  onClick={() => { setActiveGallery(proj.screenshots); setPage([0, 0]); document.body.style.overflow = 'hidden'; }}
-                  style={{ width: '100%', background: 'rgba(74, 155, 127, 0.1)', color: '#C4CDB8', padding: '0.85rem', borderRadius: '12px', border: '1px solid rgba(74, 155, 127, 0.5)', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', cursor: 'pointer', transition: 'all 0.3s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#4A9B7F'; e.currentTarget.style.color = '#241E21' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(74, 155, 127, 0.1)'; e.currentTarget.style.color = '#C4CDB8' }}
-                >
-                  <ImageIcon size={18} /> View Screenshots
-                </button>
+        {/* PC Case */}
+        <div className="fade-up" style={{ opacity: 0, transform: 'translateY(40px)', transition: 'all 0.8s ease 0.2s', display: 'inline-block', position: 'relative' }}>
+
+          {/* Outer case shell */}
+          <div style={{
+            position: 'relative',
+            background: 'linear-gradient(145deg, #1c1c1c 0%, #252525 40%, #1c1c1c 100%)',
+            border: '2px solid #2a2a2a',
+            borderRadius: 18, padding: 22,
+            boxShadow: '0 40px 100px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 60px rgba(74,155,127,0.04)',
+          }}>
+
+            {/* Top bar with status LED */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 22, background: '#111', borderRadius: '16px 16px 0 0', display: 'flex', alignItems: 'center', paddingLeft: 16, gap: 10 }}>
+              <div style={{
+                width: 7, height: 7, borderRadius: '50%',
+                background: anyRemoved ? '#ff3333' : '#4AFF7F',
+                boxShadow: anyRemoved ? '0 0 8px #ff3333' : '0 0 8px #4AFF7F',
+                transition: 'all 0.3s',
+              }}/>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: anyRemoved ? '#ff8888' : '#555', transition: 'color 0.3s' }}>
+                {anyRemoved ? '⚠ HARDWARE FAULT DETECTED' : 'ALL SYSTEMS NOMINAL'}
+              </span>
+              {/* Right side case branding */}
+              <span style={{ position: 'absolute', right: 16, fontFamily: 'monospace', fontSize: '0.55rem', color: '#333' }}>
+                ROG CASE ·  TG SIDE PANEL
+              </span>
+            </div>
+
+            {/* Tempered glass glare */}
+            <div style={{ position: 'absolute', inset: 22, background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 40%)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 8, pointerEvents: 'none', zIndex: 200 }}/>
+
+            {/* Interior */}
+            <div style={{
+              position: 'relative',
+              background: 'linear-gradient(155deg, #0c1410 0%, #090d0b 55%, #0c1008 100%)',
+              borderRadius: 8, padding: '30px 16px 16px', overflow: 'visible',
+              boxShadow: 'inset 0 0 40px rgba(0,0,0,0.5)',
+            }}>
+              {/* RGB strip top */}
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg, #ff0080, #4A9B7F, #0080ff, #ff8000, #ff00ff, #ff0080)', borderRadius: '8px 8px 0 0', animation: 'rgbMove 4s linear infinite' }}/>
+              {/* RGB strip bottom */}
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #0080ff, #ff0080, #4A9B7F, #ff8000)', borderRadius: '0 0 8px 8px', opacity: 0.5, animation: 'rgbMove 6s linear infinite reverse' }}/>
+
+              {/* Motherboard + all components */}
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <Motherboard />
+
+                <DraggableComponent id="cpu" slotStyle={SLOTS.cpu} onRemove={handleRemove} removed={removed.cpu} label={LABELS.cpu}>
+                  <CPU />
+                </DraggableComponent>
+                <DraggableComponent id="cooler" slotStyle={SLOTS.cooler} onRemove={handleRemove} removed={removed.cooler} label={LABELS.cooler}>
+                  <CPUCooler />
+                </DraggableComponent>
+                <DraggableComponent id="ram1" slotStyle={SLOTS.ram1} onRemove={handleRemove} removed={removed.ram1} label={LABELS.ram1}>
+                  <RAM slot={0} />
+                </DraggableComponent>
+                <DraggableComponent id="ram2" slotStyle={SLOTS.ram2} onRemove={handleRemove} removed={removed.ram2} label={LABELS.ram2}>
+                  <RAM slot={1} />
+                </DraggableComponent>
+                <DraggableComponent id="gpu" slotStyle={SLOTS.gpu} onRemove={handleRemove} removed={removed.gpu} label={LABELS.gpu}>
+                  <GPU />
+                </DraggableComponent>
+                <DraggableComponent id="ssd" slotStyle={SLOTS.ssd} onRemove={handleRemove} removed={removed.ssd} label={LABELS.ssd}>
+                  <SSD />
+                </DraggableComponent>
+                <DraggableComponent id="psu" slotStyle={SLOTS.psu} onRemove={handleRemove} removed={removed.psu} label={LABELS.psu}>
+                  <PSU />
+                </DraggableComponent>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Component status pills */}
+          <div style={{ marginTop: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center' }}>
+            {COMPONENTS.map(id => (
+              <div key={id} style={{
+                padding: '4px 12px', borderRadius: 100,
+                background: removed[id] ? 'rgba(255,60,60,0.12)' : 'rgba(74,155,127,0.08)',
+                border: `1px solid ${removed[id] ? 'rgba(255,60,60,0.35)' : 'rgba(74,155,127,0.25)'}`,
+                fontSize: '0.7rem', fontWeight: 600,
+                color: removed[id] ? '#ff9999' : '#9DB89A',
+                transition: 'all 0.3s', fontFamily: 'monospace',
+              }}>
+                {removed[id] ? '✗' : '✓'} {LABELS[id]}
+              </div>
+            ))}
+          </div>
+
+          {anyRemoved && !bsod && (
+            <div style={{ marginTop: '0.8rem', textAlign: 'center', color: '#ff8888', fontSize: '0.75rem', fontFamily: 'monospace', animation: 'blink 0.8s ease infinite' }}>
+              ⚠ HARDWARE FAULT — drag component further to trigger BSOD
+            </div>
+          )}
         </div>
       </div>
 
-      <AnimatePresence>
-        {activeGallery && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(36, 30, 33, 0.98)', backdropFilter: 'blur(15px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-            
-            <div style={{ position: 'relative', width: '100%', maxWidth: '900px' }}>
-              
-              {/* Close Button - Positioned to the side of the container */}
-              <button 
-                onClick={() => { setActiveGallery(null); document.body.style.overflow = 'auto'; }} 
-                style={{ 
-                  position: 'absolute', top: '-60px', right: '0', 
-                  background: 'none', border: '1px solid #4A9B7F', 
-                  borderRadius: '50%', color: '#4A9B7F', padding: '8px', 
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', 
-                  justifyContent: 'center', transition: 'all 0.2s' 
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(74, 155, 127, 0.1)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'none'}
-              >
-                <X size={28} />
-              </button>
-
-              <div style={{ 
-                position: 'relative', display: 'flex', alignItems: 'center', 
-                justifyContent: 'center', overflow: 'hidden', borderRadius: '24px', 
-                border: '2px solid rgba(74, 155, 127, 0.4)', background: '#111',
-                boxShadow: '0 0 50px rgba(0,0,0,0.5)'
-              }}>
-                <AnimatePresence initial={false} custom={direction} mode="wait">
-                  <motion.img
-                    key={page}
-                    src={activeGallery[page]}
-                    custom={direction}
-                    variants={imageVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain' }}
-                  />
-                </AnimatePresence>
-              </div>
-
-              {/* Navigation Arrows */}
-              <button 
-                onClick={() => paginate(-1)} 
-                style={{ position: 'absolute', left: '-70px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(74, 155, 127, 0.1)', border: '1px solid #4A9B7F', borderRadius: '50%', color: '#C4CDB8', padding: '12px', cursor: 'pointer' }}
-              >
-                <ChevronLeft size={24} />
-              </button>
-              <button 
-                onClick={() => paginate(1)} 
-                style={{ position: 'absolute', right: '-70px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(74, 155, 127, 0.1)', border: '1px solid #4A9B7F', borderRadius: '50%', color: '#C4CDB8', padding: '12px', cursor: 'pointer' }}
-              >
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <style>{`
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+        @keyframes bootFade { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0;pointer-events:none} }
+        @keyframes rgbMove { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
+      `}</style>
     </section>
   )
 }
