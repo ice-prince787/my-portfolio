@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 
 const roles = ['Full-Stack Developer', 'React Enthusiast', 'Problem Solver', 'Open to Work']
 
@@ -39,17 +39,25 @@ export default function Hero() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    let width = canvas.width = window.innerWidth
-    let height = canvas.height = window.innerHeight
+    // With CSS zoom on body, window.innerWidth returns the zoomed viewport size.
+    // We need the actual unzoomed canvas size so particles fill the section properly.
+    const getZoom = () => parseFloat(document.body.style.zoom || '1') || 1
+    const getW = () => window.innerWidth / getZoom()
+    const getH = () => window.innerHeight / getZoom()
+
+    let width = canvas.width = getW()
+    let height = canvas.height = getH()
 
     const onResize = () => {
-      width = canvas.width = window.innerWidth
-      height = canvas.height = window.innerHeight
+      width = canvas.width = getW()
+      height = canvas.height = getH()
       initParticles()
     }
 
     const onMouseMove = (e: MouseEvent) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY }
+      // clientX/Y are in screen pixels; divide by zoom to get canvas-space coords
+      const z = getZoom()
+      mouseRef.current = { x: e.clientX / z, y: e.clientY / z }
     }
 
     const onMouseLeave = () => {
@@ -216,9 +224,23 @@ export default function Hero() {
     }, 300)
   }
 
+  // Section must fill exactly one viewport height accounting for zoom
+  // otherwise About section bleeds through at >100% zoom
+  const [sectionH, setSectionH] = React.useState('100vh')
+  React.useEffect(() => {
+    const update = () => {
+      const z = parseFloat(document.body.style.zoom || '1') || 1
+      setSectionH(`${window.innerHeight / z}px`)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+
   return (
     <section style={{
-      minHeight: '100vh',
+      minHeight: sectionH,
+      height: sectionH,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '0 2rem',
       position: 'relative',

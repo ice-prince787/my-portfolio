@@ -22,9 +22,33 @@ export default function BSOD({ info, onRestart }: BSODProps) {
 
   useEffect(() => { setMounted(true) }, [])
 
+  const [validScreenshots, setValidScreenshots] = useState<string[]>([])
+
   useEffect(() => {
-    info.project.screenshots.forEach(src => {
-      const img = new window.Image(); img.src = src
+    // Preload all screenshots immediately — images are cached by browser
+    // so by the time user opens gallery they load instantly
+    const total = info.project.screenshots.length
+    const valid: string[] = new Array(total).fill(null) as string[]
+    let checked = 0
+
+    info.project.screenshots.forEach((src, idx) => {
+      const img = new window.Image()
+      img.onload = () => {
+        valid[idx] = src   // preserve order
+        checked++
+        if (checked === total) {
+          setValidScreenshots(valid.filter(Boolean))
+          setGalleryIndex(0)
+        }
+      }
+      img.onerror = () => {
+        checked++
+        if (checked === total) {
+          setValidScreenshots(valid.filter(Boolean))
+          setGalleryIndex(0)
+        }
+      }
+      img.src = src  // starts downloading immediately
     })
   }, [info])
 
@@ -39,7 +63,7 @@ export default function BSOD({ info, onRestart }: BSODProps) {
   }, [])
 
   const nav = (dir: number) => {
-    setGalleryIndex(i => (i + dir + info.project.screenshots.length) % info.project.screenshots.length)
+    setGalleryIndex(i => (i + dir + validScreenshots.length) % validScreenshots.length)
   }
 
   const content = (
@@ -99,7 +123,7 @@ export default function BSOD({ info, onRestart }: BSODProps) {
             </div>
             <div style={{ width: 200, flexShrink: 0 }}>
               <div style={{ position: 'relative', borderRadius: 8, overflow: 'hidden', border: `1px solid ${colors.accent}44`, background: '#111', cursor: 'pointer', height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowGallery(true)}>
-                <img src={info.project.screenshots[0]} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}/>
+                <img src={validScreenshots[0] || info.project.screenshots[0]} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}/>
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', color: colors.accent, fontWeight: 600, opacity: 0, transition: 'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0'}>View Screenshots</div>
               </div>
               <button onClick={() => setShowGallery(true)} style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem', background: `${colors.accent}18`, border: `1px solid ${colors.accent}44`, borderRadius: 6, color: colors.accent, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = `${colors.accent}33`} onMouseLeave={e => e.currentTarget.style.background = `${colors.accent}18`}>
@@ -120,16 +144,16 @@ export default function BSOD({ info, onRestart }: BSODProps) {
       {showGallery && (
         <div onClick={() => setShowGallery(false)} style={{ position: 'fixed', inset: 0, zIndex: 100000, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div onClick={e => e.stopPropagation()} style={{ position: 'relative', maxWidth: 860, width: '100%' }}>
-            <img key={galleryIndex} src={info.project.screenshots[galleryIndex]} alt="screenshot" style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain', maxHeight: '80vh', borderRadius: 16, border: `1px solid ${colors.accent}44`, animation: 'imgPop 0.15s ease' }}/>
+            <img key={galleryIndex} src={validScreenshots[galleryIndex] || info.project.screenshots[galleryIndex]} alt="screenshot" style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain', maxHeight: '80vh', borderRadius: 16, border: `1px solid ${colors.accent}44`, animation: 'imgPop 0.15s ease' }}/>
             <button onClick={() => setShowGallery(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.8)', border: `1px solid ${colors.accent}66`, borderRadius: '50%', color: '#ccc', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <X size={16}/>
             </button>
-            {info.project.screenshots.length > 1 && <>
+            {validScreenshots.length > 1 && <>
               <button onClick={() => nav(-1)} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.7)', border: `1px solid ${colors.accent}55`, borderRadius: '50%', color: '#ccc', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronLeft size={18}/></button>
               <button onClick={() => nav(1)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.7)', border: `1px solid ${colors.accent}55`, borderRadius: '50%', color: '#ccc', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><ChevronRight size={18}/></button>
             </>}
             <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 12 }}>
-              {info.project.screenshots.map((_, i) => (
+              {validScreenshots.map((_, i) => (
                 <div key={i} onClick={() => setGalleryIndex(i)} style={{ width: i === galleryIndex ? 20 : 7, height: 7, borderRadius: 100, background: i === galleryIndex ? colors.accent : '#444', transition: 'all 0.2s', cursor: 'pointer' }}/>
               ))}
             </div>

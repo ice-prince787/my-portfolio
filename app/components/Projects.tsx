@@ -44,6 +44,17 @@ export default function Projects() {
   const [bsod, setBsod] = useState<BSODInfo | null>(null)
   const [bootAnim, setBootAnim] = useState(false)
 
+  // Preload ALL project screenshots the moment this section mounts
+  // so they're fully cached before anyone even touches a component
+  useEffect(() => {
+    Object.values(BSOD_MAP).forEach(bsod => {
+      bsod.project.screenshots.forEach(src => {
+        const img = new window.Image()
+        img.src = src
+      })
+    })
+  }, [])
+
   const handleRemove = useCallback((id: string) => {
     const cid = id as ComponentId
     setRemoved(prev => ({ ...prev, [cid]: true }))

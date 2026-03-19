@@ -87,9 +87,14 @@ function WrenchScene() {
 
     const mouse = { x: -999, y: -999 }
 
+    // CSS zoom makes clientX/Y use zoomed coords but getBoundingClientRect
+    // returns unzoomed values — divide by zoom to reconcile them
+    const getZoom = () => parseFloat(document.body.style.zoom || '1') || 1
+
     const onMouseDown = (e: MouseEvent) => {
+      const z = getZoom()
       const r = canvas.getBoundingClientRect()
-      const mx = e.clientX - r.left, my = e.clientY - r.top
+      const mx = (e.clientX - r.left) / z, my = (e.clientY - r.top) / z
       if (Math.hypot(mx - wr.x, my - wr.y) < 65) {
         wr.dragging = true
         wr.offX = wr.x - mx; wr.offY = wr.y - my
@@ -101,8 +106,9 @@ function WrenchScene() {
     }
 
     const onMouseMove = (e: MouseEvent) => {
+      const z = getZoom()
       const r = canvas.getBoundingClientRect()
-      mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top
+      mouse.x = (e.clientX - r.left) / z; mouse.y = (e.clientY - r.top) / z
       if (!wr.dragging) return
 
       if (wr.snapped) {

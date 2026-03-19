@@ -23,7 +23,6 @@ export interface BSODInfo {
   project: ProjectInfo
 }
 
-// Criticality → screen color
 export const CRITICALITY_COLOR: Record<Criticality, { bg: string; accent: string; label: string }> = {
   CRITICAL: { bg: '#1a0000', accent: '#ff2222', label: 'CRITICAL' },
   HIGH:     { bg: '#1a0800', accent: '#ff6600', label: 'HIGH' },
@@ -39,10 +38,10 @@ export const BSOD_MAP: Record<string, BSODInfo> = {
     message: 'DISPLAY_DRIVER_REMOVED',
     detail: 'The display adapter has been physically disconnected. Windows cannot render any graphics without a GPU installed. You are somehow reading this without a display.',
     project: {
-      title: 'Neon Dash',
-      description: 'Synthwave endless runner built in Unity with smooth movement, scoring system and neon bloom visuals. This game runs entirely on GPU — no wonder it crashed.',
-      tech: ['Unity', 'C#', 'URP', 'Bloom'],
-      screenshots: ['/project1-1.png', '/project1-2.png'],
+      title: 'BoXeS',
+      description: 'A game of dodging boxes — you ARE a box. Three levels of pure player movement in Unity using C#. Simple concept, surprisingly addictive.',
+      tech: ['Unity', 'C#'],
+      screenshots: ['/project-boxes-1.png', '/project-boxes-2.png'],
     },
   },
   ram: {
@@ -50,12 +49,12 @@ export const BSOD_MAP: Record<string, BSODInfo> = {
     component: 'RAM',
     criticality: 'MEDIUM',
     message: 'MEMORY_MANAGEMENT',
-    detail: 'A fatal memory management error has occurred. One or more RAM sticks have been removed. The system cannot allocate memory for critical processes.',
+    detail: 'A fatal memory management error has occurred. RAM stick removed. The system cannot allocate memory for critical processes.',
     project: {
-      title: 'React Dashboard',
-      description: 'Admin dashboard with live charts, dark mode, and smooth animated transitions. RAM-hungry by design — it loads everything into memory at once.',
-      tech: ['React', 'CSS', 'Anime.js'],
-      screenshots: ['/project4-1.png', '/project4-2.png'],
+      title: 'Study Timer',
+      description: 'A normal Pomodoro timer to study — but pixelated. Built to make study sessions actually feel fun with a retro aesthetic.',
+      tech: ['React', 'CSS', 'JavaScript'],
+      screenshots: ['/project-timer-1.png', '/project-timer-2.png'],
     },
   },
   ram2: {
@@ -63,12 +62,12 @@ export const BSOD_MAP: Record<string, BSODInfo> = {
     component: 'RAM #2',
     criticality: 'LOW',
     message: 'DUAL_CHANNEL_BROKEN',
-    detail: 'Second RAM stick removed. Dual channel memory mode disabled. System running in degraded single-channel mode with 50% memory bandwidth. Performance severely impacted.',
+    detail: 'Second RAM stick removed. Dual channel disabled. System degraded to single-channel mode with 50% memory bandwidth. Performance severely impacted.',
     project: {
-      title: 'Portfolio Site',
-      description: 'This very portfolio — Next.js, Three.js, interactive particles, draggable 3D shapes and a whole interactive PC build. Needs both sticks to run smoothly.',
-      tech: ['Next.js', 'Three.js', 'TypeScript'],
-      screenshots: ['/project3-1.png', '/project3-2.png'],
+      title: 'Portfolio',
+      description: 'This very portfolio you are looking at right now. Built with Next.js, Three.js, interactive particles, a draggable wrench, and a whole interactive PC build. Very meta.',
+      tech: ['Next.js', 'Three.js', 'TypeScript', 'CSS'],
+      screenshots: ['/project-portfolio-1.png', '/project-portfolio-2.png'],
     },
   },
   cpu: {
@@ -76,12 +75,12 @@ export const BSOD_MAP: Record<string, BSODInfo> = {
     component: 'CPU',
     criticality: 'CRITICAL',
     message: 'CRITICAL_PROCESSOR_MISSING',
-    detail: 'The central processing unit has been removed. No instructions can be executed. This is not a software problem — the brain of your computer is literally gone. How is this screen even on.',
+    detail: 'The central processing unit has been removed. No instructions can be executed. This is not a software problem — the brain of your computer is literally gone.',
     project: {
-      title: 'Unity Prototype',
-      description: 'Third-person prototype exploring movement feel, camera systems, and modular architecture. The CPU ran 10,000 physics calculations per second for this. Now it is gone.',
-      tech: ['Unity', 'C#', 'Cinemachine'],
-      screenshots: ['/project6-1.png', '/project6-2.png'],
+      title: 'UFO Adventures',
+      description: 'Flappy Bird type game set in space — shoot asteroids, dodge obstacles, survive the void. Built in Unity with C#. The CPU was working overtime running collision detection.',
+      tech: ['Unity', 'C#'],
+      screenshots: ['/project-ufo-1.png', '/project-ufo-2.png'],
     },
   },
   cooler: {
@@ -91,10 +90,10 @@ export const BSOD_MAP: Record<string, BSODInfo> = {
     message: 'CPU_TEMPERATURE_CRITICAL',
     detail: 'Thermal protection engaged. CPU cooler removed — core temperature exceeded 110°C in 0.3 seconds. Emergency shutdown initiated to prevent permanent CPU damage.',
     project: {
-      title: 'Pygame Platformer',
-      description: 'Side-scrolling platformer in Python with tile-based maps, enemy AI, and collectibles. The CPU got so hot running the pathfinding algorithms that it needed two coolers.',
-      tech: ['Python', 'Pygame'],
-      screenshots: ['/project5-1.png', '/project5-2.png'],
+      title: 'UFO Adventures',
+      description: 'Flappy Bird type game set in space — shoot asteroids, dodge obstacles, survive the void. Built in Unity with C#. The CPU got so hot running AI that it needed extra cooling.',
+      tech: ['Unity', 'C#'],
+      screenshots: ['/project-ufo-1.png', '/project-ufo-2.png'],
     },
   },
   ssd: {
@@ -102,12 +101,12 @@ export const BSOD_MAP: Record<string, BSODInfo> = {
     component: 'SSD',
     criticality: 'LOW',
     message: 'BOOT_DEVICE_NOT_FOUND',
-    detail: 'The boot device has been physically removed. Windows cannot find the drive containing the operating system. Please reinstall your storage device and stop touching things.',
+    detail: 'The boot device has been physically removed. Windows cannot find the drive containing the operating system. Please reinstall your storage device.',
     project: {
       title: 'Brick Breaker',
-      description: 'Classic arcade reimagined with physics collisions, power-ups, and progressive difficulty. All 847 levels were stored on this SSD. They are gone now. Great job.',
-      tech: ['Unity', 'C#', 'Game Physics'],
-      screenshots: ['/project2-1.png', '/project2-2.png'],
+      description: '2D brick breaker game with power-ups and 3 levels, made in Pygame. Classic arcade reimagined. All save data was on this SSD. It is gone now. Great job.',
+      tech: ['Python', 'Pygame'],
+      screenshots: ['/project-brick-1.png', '/project-brick-2.png', '/project-brick-3.png', '/project-brick-4.png', '/project-brick-5.png'],
     },
   },
   psu: {
@@ -117,10 +116,10 @@ export const BSOD_MAP: Record<string, BSODInfo> = {
     message: 'POWER_SUPPLY_REMOVED',
     detail: 'Power supply unit disconnected. All system power has been cut. How are you even reading this? The PC should be completely off. This defies the laws of physics.',
     project: {
-      title: 'Neon Dash 2',
-      description: 'Sequel to Neon Dash with procedural level generation, online leaderboards and enhanced visuals. The PSU powered 3 monitors during development. Now it powers nothing.',
-      tech: ['Unity', 'C#', 'Networking', 'URP'],
-      screenshots: ['/project1-1.png', '/project1-2.png'],
+      title: 'Jarvis',
+      description: 'Made in Python — opens websites and searches online with speech recognition in English. Just talk to it. It listens. Powered by the PSU you just ripped out.',
+      tech: ['Python', 'SpeechRecognition', 'webbrowser'],
+      screenshots: ['/project-jarvis-1.png', '/project-jarvis-2.png'],
     },
   },
 }

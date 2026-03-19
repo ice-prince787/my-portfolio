@@ -17,31 +17,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {/*
-          CSS zoom scales the entire page relative to 1920px base.
-          Unlike transform:scale, zoom:
-            - Does NOT break position:fixed (sidebar stays fixed)
-            - Does NOT break BSOD/modal overlays
-            - Affects layout flow so scrollbar is automatically correct
-            - Supported in all modern browsers (Chrome, Edge, Safari, Firefox 126+)
-        */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                const BASE = 1920;
-                function applyZoom() {
-                  var zoom = window.innerWidth / BASE;
-                  // Clamp: never zoom above 100% (no upscaling on large screens)
-                  zoom = Math.min(zoom, 1);
-                  document.body.style.zoom = zoom;
-                }
-                applyZoom();
-                window.addEventListener('resize', applyZoom);
-              })();
-            `,
-          }}
-        />
         {children}
       </body>
     </html>
