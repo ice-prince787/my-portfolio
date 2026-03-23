@@ -10,6 +10,7 @@ import CPU from './pc-components/CPU'
 import CPUCooler from './pc-components/CPUCooler'
 import SSD from './pc-components/SSD'
 import PSU from './pc-components/PSU'
+import Window from './pc-components/Window'
 
 const COMPONENTS = ['gpu', 'ram1', 'ram2', 'cpu', 'cooler', 'ssd', 'psu'] as const
 type ComponentId = typeof COMPONENTS[number]
@@ -90,9 +91,99 @@ export default function Projects() {
   return (
     <section id="projects" ref={sectionRef} style={{
       padding: '6rem 2rem', position: 'relative', overflow: 'hidden',
-      minHeight: '100vh', background: '#0a0d09',
+      minHeight: '100vh',
+      background: '#0b0f12',
     }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 40%, rgba(74,155,127,0.04) 0%, transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(45,79,71,0.06) 0%, transparent 50%)', pointerEvents: 'none' }} />
+      {/* Full cozy tech-room scene */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+        {/* Back wall */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, #21272d 0%, #1a2026 44%, #141a20 64%, #12171c 100%)',
+        }} />
+
+        {/* Subtle wall texture */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          opacity: 0.35,
+          background: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 9px)',
+        }} />
+
+        <Window />
+
+        {/* Window cast glow on wall */}
+        <div style={{
+          position: 'absolute',
+          right: '7.5%',
+          top: '14%',
+          width: 420,
+          height: 280,
+          borderRadius: 24,
+          background: 'radial-gradient(ellipse at 70% 35%, rgba(133,164,220,0.2) 0%, rgba(82,114,170,0.09) 36%, rgba(72,102,152,0) 72%)',
+          filter: 'blur(6px)',
+          animation: 'roomBreathe 8s ease-in-out infinite',
+        }} />
+
+        {/* Warm side lamp */}
+        <div style={{
+          position: 'absolute',
+          left: '11%',
+          top: '22%',
+          width: 18,
+          height: 66,
+          borderRadius: 10,
+          background: '#3f3a35',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+        }} />
+        <div style={{
+          position: 'absolute',
+          left: '9.8%',
+          top: '19%',
+          width: 42,
+          height: 32,
+          borderRadius: '18px 18px 10px 10px',
+          background: '#4c433b',
+          border: '1px solid rgba(255,255,255,0.12)',
+        }} />
+        {/* Warm side lamp glow */}
+        <div style={{
+          position: 'absolute',
+          left: '11%',
+          top: '20%',
+          width: 190,
+          height: 190,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,204,136,0.32) 0%, rgba(255,171,102,0.16) 42%, rgba(255,154,92,0) 76%)',
+          filter: 'blur(3px)',
+          animation: 'lampFlicker 5.4s ease-in-out infinite',
+        }} />
+
+        {/* Realistic ambient bounce on desk */}
+        <div style={{
+          position: 'absolute',
+          left: '12%',
+          right: '12%',
+          bottom: '7.6%',
+          height: 12,
+          borderRadius: 999,
+          background: 'radial-gradient(ellipse at 36% 50%, rgba(255,185,118,0.2) 0%, rgba(255,185,118,0) 36%), radial-gradient(ellipse at 78% 50%, rgba(132,174,230,0.18) 0%, rgba(132,174,230,0) 36%)',
+          filter: 'blur(2px)',
+          animation: 'roomBreathe 8s ease-in-out infinite',
+        }} />
+
+        {/* Floor */}
+        <div style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '26%',
+          background: 'linear-gradient(180deg, #3a3028 0%, #30271f 100%)',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+        }} />
+      </div>
 
       {bsod && <BSOD info={bsod} onRestart={handleRestart} />}
 
@@ -124,10 +215,25 @@ export default function Projects() {
 
         {/* PC Case */}
         <div className="fade-up" style={{ opacity: 0, transform: 'translateY(40px)', transition: 'all 0.8s ease 0.2s', display: 'inline-block', position: 'relative' }}>
+          {/* Floor contact shadow so PC feels grounded */}
+          <div style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: -24,
+            width: '85%',
+            height: 42,
+            transform: 'translateX(-50%)',
+            borderRadius: '50%',
+            background: 'radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.16) 55%, rgba(0,0,0,0) 100%)',
+            filter: 'blur(2px)',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }} />
 
           {/* Outer case shell */}
           <div style={{
             position: 'relative',
+            zIndex: 2,
             background: 'linear-gradient(145deg, #1c1c1c 0%, #252525 40%, #1c1c1c 100%)',
             border: '2px solid #2a2a2a',
             borderRadius: 18, padding: 22,
@@ -157,9 +263,9 @@ export default function Projects() {
             {/* Interior */}
             <div style={{
               position: 'relative',
-              background: 'linear-gradient(155deg, #0c1410 0%, #090d0b 55%, #0c1008 100%)',
+              background: 'linear-gradient(160deg, #132019 0%, #101813 48%, #0d130f 100%)',
               borderRadius: 8, padding: '30px 16px 16px', overflow: 'visible',
-              boxShadow: 'inset 0 0 40px rgba(0,0,0,0.5)',
+              boxShadow: 'inset 0 0 48px rgba(0,0,0,0.52), inset 0 0 80px rgba(74,155,127,0.06)',
             }}>
               {/* RGB strip top */}
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg, #ff0080, #4A9B7F, #0080ff, #ff8000, #ff00ff, #ff0080)', borderRadius: '8px 8px 0 0', animation: 'rgbMove 4s linear infinite' }}/>
@@ -168,6 +274,34 @@ export default function Projects() {
 
               {/* Motherboard + all components */}
               <div style={{ position: 'relative', display: 'inline-block' }}>
+                {/* Cozy CPU backlight zone */}
+                <div style={{
+                  position: 'absolute',
+                  left: 22,
+                  top: 54,
+                  width: 108,
+                  height: 108,
+                  borderRadius: 20,
+                  background: 'radial-gradient(circle at 35% 35%, rgba(255,210,150,0.22) 0%, rgba(255,170,92,0.1) 35%, rgba(74,155,127,0.1) 62%, rgba(0,0,0,0) 100%)',
+                  filter: 'blur(1.5px)',
+                  boxShadow: '0 0 32px rgba(255,170,92,0.2), 0 0 52px rgba(74,155,127,0.12)',
+                  zIndex: 0,
+                  pointerEvents: 'none',
+                }} />
+                <div style={{
+                  position: 'absolute',
+                  left: 36,
+                  top: 68,
+                  width: 80,
+                  height: 80,
+                  borderRadius: 14,
+                  border: '1px solid rgba(255,220,170,0.22)',
+                  background: 'linear-gradient(145deg, rgba(255,188,120,0.12), rgba(74,155,127,0.08))',
+                  boxShadow: 'inset 0 0 18px rgba(255,220,170,0.1)',
+                  zIndex: 0,
+                  pointerEvents: 'none',
+                }} />
+
                 <Motherboard />
 
                 <DraggableComponent id="cpu" slotStyle={SLOTS.cpu} onRemove={handleRemove} removed={removed.cpu} label={LABELS.cpu}>
@@ -223,6 +357,17 @@ export default function Projects() {
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
         @keyframes bootFade { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0;pointer-events:none} }
         @keyframes rgbMove { 0%{filter:hue-rotate(0deg)} 100%{filter:hue-rotate(360deg)} }
+        @keyframes roomBreathe {
+          0%, 100% { opacity: 0.9; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.03); }
+        }
+        @keyframes lampFlicker {
+          0%, 100% { opacity: 0.92; }
+          35% { opacity: 1; }
+          38% { opacity: 0.84; }
+          41% { opacity: 0.98; }
+          70% { opacity: 0.9; }
+        }
       `}</style>
     </section>
   )

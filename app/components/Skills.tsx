@@ -17,9 +17,22 @@ function WrenchScene() {
     let w = canvas.width = canvas.parentElement?.clientWidth || window.innerWidth
     let h = canvas.height = canvas.parentElement?.clientHeight || window.innerHeight
 
+    let stars = Array.from({ length: 55 }, (_, i) => ({
+      x: (i * 179 + 33) % w,
+      y: (i * 113 + 55) % h,
+      r: i % 5 === 0 ? 1.2 : 0.9,
+      alpha: 0.035 + (i % 4) * 0.01,
+    }))
+
     const onResize = () => {
       w = canvas.width = canvas.parentElement?.clientWidth || window.innerWidth
       h = canvas.height = canvas.parentElement?.clientHeight || window.innerHeight
+      stars = Array.from({ length: 55 }, (_, i) => ({
+        x: (i * 179 + 33) % w,
+        y: (i * 113 + 55) % h,
+        r: i % 5 === 0 ? 1.2 : 0.9,
+        alpha: 0.035 + (i % 4) * 0.01,
+      }))
     }
     window.addEventListener('resize', onResize)
 
@@ -32,7 +45,9 @@ function WrenchScene() {
       floatOff: number
       done: boolean
       fadeOut: number
+      fadeDir: 1 | -1 | 0
     }
+    type Spark = { x: number; y: number; vx: number; vy: number; life: number; size: number }
 
     // Margin positions — bolts only here, never over cards
     // Fixed slots — each has a permanent position and an occupied flag
@@ -58,7 +73,7 @@ function WrenchScene() {
       if (freeSlots.length === 0) return null
       const slot = freeSlots[Math.floor(Math.random() * freeSlots.length)]
       slot.occupied = true
-      return { x: slot.x, y: slot.y, rot: Math.random() * Math.PI * 2, screwDepth: 0, floatOff: Math.random() * Math.PI * 2, done: false, fadeOut: 0 }
+      return { x: slot.x, y: slot.y, rot: Math.random() * Math.PI * 2, screwDepth: 0, floatOff: Math.random() * Math.PI * 2, done: false, fadeOut: 0, fadeDir: 1 }
     }
 
     // Free the slot when a bolt is screwed
@@ -69,9 +84,10 @@ function WrenchScene() {
 
     // Start with 3 bolts in fixed slots
     const bolts: Bolt[] = []
+    const sparks: Spark[] = []
     ;[ slots[1], slots[5], slots[10] ].forEach(slot => {
       slot.occupied = true
-      bolts.push({ x: slot.x, y: slot.y, rot: 0, screwDepth: 0, floatOff: Math.random() * Math.PI * 2, done: false, fadeOut: 1 })
+      bolts.push({ x: slot.x, y: slot.y, rot: 0, screwDepth: 0, floatOff: Math.random() * Math.PI * 2, done: false, fadeOut: 1, fadeDir: 0 })
     })
 
     const wr = {
@@ -123,6 +139,19 @@ function WrenchScene() {
         bolt.rot  += delta
         if (delta > 0.001) {
           bolt.screwDepth = Math.min(1, bolt.screwDepth + delta * 0.18)
+          if (Math.random() < 0.35) {
+            const px = bolt.x + (Math.random() - 0.5) * 8
+            const py = bolt.y + (Math.random() - 0.5) * 8
+            sparks.push({
+              x: px,
+              y: py,
+              vx: (Math.random() - 0.5) * 1.3,
+              vy: -0.9 - Math.random() * 0.9,
+              life: 1,
+              size: 1.2 + Math.random() * 2.1,
+            })
+            if (sparks.length > 64) sparks.splice(0, sparks.length - 64)
+          }
         }
         // Reposition wrench so head stays locked on bolt
         wr.x = bolt.x - Math.cos(wr.angle) * HEAD_DIST
@@ -147,21 +176,30 @@ function WrenchScene() {
       ctx.save()
       ctx.translate(x, y); ctx.rotate(angle)
       ctx.lineCap = 'round'; ctx.lineJoin = 'round'
-      const col = glow ? '#4A9B7F' : '#9DB89A'
-      if (glow) { ctx.shadowColor = '#4A9B7F'; ctx.shadowBlur = 22 }
+      const metal = ctx.createLinearGradient(-42, -8, HEAD_DIST + 14, 8)
+      metal.addColorStop(0, '#8AA39A')
+      metal.addColorStop(0.45, glow ? '#C4E4D5' : '#B8CABB')
+      metal.addColorStop(1, '#547167')
+      if (glow) { ctx.shadowColor = '#4A9B7F'; ctx.shadowBlur = 18 }
       ctx.beginPath(); ctx.moveTo(-38, 0); ctx.lineTo(HEAD_DIST, 0)
-      ctx.strokeStyle = col; ctx.lineWidth = 7; ctx.stroke()
+      ctx.strokeStyle = metal; ctx.lineWidth = 8; ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(-38, -1.8); ctx.lineTo(HEAD_DIST - 5, -1.8)
+      ctx.strokeStyle = 'rgba(229,245,236,0.42)'; ctx.lineWidth = 1.2; ctx.stroke()
+
+      const ring = ctx.createRadialGradient(HEAD_DIST - 2, -1, 3, HEAD_DIST, 0, 15)
+      ring.addColorStop(0, '#D5E8DD')
+      ring.addColorStop(1, '#5D7D71')
       ctx.beginPath(); ctx.arc(HEAD_DIST, 0, 13, 0, Math.PI * 2)
-      ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke()
+      ctx.strokeStyle = ring; ctx.lineWidth = 3.2; ctx.stroke()
       ctx.beginPath()
       for (let i = 0; i < 6; i++) {
         const a = (i / 6) * Math.PI * 2
         i === 0 ? ctx.moveTo(HEAD_DIST + Math.cos(a)*7, Math.sin(a)*7)
                 : ctx.lineTo(HEAD_DIST + Math.cos(a)*7, Math.sin(a)*7)
       }
-      ctx.closePath(); ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke()
+      ctx.closePath(); ctx.strokeStyle = glow ? '#4A9B7F' : '#8DAE9E'; ctx.lineWidth = 1.6; ctx.stroke()
       ctx.beginPath(); ctx.arc(-38, 0, 9, 0, Math.PI * 2)
-      ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.stroke()
+      ctx.strokeStyle = '#7E9A90'; ctx.lineWidth = 2.6; ctx.stroke()
       ctx.shadowBlur = 0; ctx.restore()
     }
 
@@ -177,6 +215,9 @@ function WrenchScene() {
       ctx.translate(bx, by); ctx.rotate(bolt.rot); ctx.scale(scale, scale)
       const col = bolt.screwDepth > 0 ? '#4A9B7F' : '#9DB89A'
       if (bolt.screwDepth > 0 && bolt.screwDepth < 1) { ctx.shadowColor = '#4A9B7F'; ctx.shadowBlur = 18 }
+      const fillGrad = ctx.createRadialGradient(-3, -4, 2, 0, 0, R + 4)
+      fillGrad.addColorStop(0, '#DCE8E0')
+      fillGrad.addColorStop(1, col)
       ctx.beginPath()
       for (let i = 0; i < 6; i++) {
         const a = (i / 6) * Math.PI * 2 - Math.PI / 6
@@ -184,12 +225,17 @@ function WrenchScene() {
                 : ctx.lineTo(Math.cos(a)*R, Math.sin(a)*R)
       }
       ctx.closePath()
-      ctx.fillStyle = col + '30'; ctx.fill()
+      ctx.fillStyle = fillGrad; ctx.globalAlpha = 0.42; ctx.fill(); ctx.globalAlpha = 1
       ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke()
       ctx.strokeStyle = '#2D4F47'; ctx.lineWidth = 2.5
       ctx.beginPath()
       ctx.moveTo(-R*0.55,0); ctx.lineTo(R*0.55,0)
       ctx.moveTo(0,-R*0.55); ctx.lineTo(0,R*0.55)
+      ctx.stroke()
+      ctx.strokeStyle = 'rgba(231,245,237,0.45)'; ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(-R * 0.35, -R * 0.35)
+      ctx.lineTo(R * 0.05, -R * 0.55)
       ctx.stroke()
       ctx.shadowBlur = 0; ctx.restore()
 
@@ -219,21 +265,26 @@ function WrenchScene() {
 
     const SNAP_DIST = 52
     let frameId: number
-
     const tick = (t: number) => {
       frameId = requestAnimationFrame(tick)
       ctx.clearRect(0, 0, w, h)
 
       // Starfield
-      ctx.fillStyle = 'rgba(196,205,184,0.06)'
-      for (let i = 0; i < 55; i++) {
-        ctx.beginPath(); ctx.arc((i*179+33)%w, (i*113+55)%h, 1, 0, Math.PI*2); ctx.fill()
+      for (const s of stars) {
+        ctx.fillStyle = `rgba(196,205,184,${s.alpha})`
+        ctx.beginPath()
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
+        ctx.fill()
       }
 
       const tt = t * 0.001
 
       // Fade done bolts out, fade new bolts in
       for (const bolt of bolts) {
+        if (bolt.fadeDir === 1) {
+          bolt.fadeOut = Math.min(1, bolt.fadeOut + 0.04)
+          if (bolt.fadeOut >= 1) bolt.fadeDir = 0
+        }
         if (bolt.done) bolt.fadeOut = Math.max(0, bolt.fadeOut - 0.012)
       }
 
@@ -291,15 +342,30 @@ function WrenchScene() {
         const fresh = spawnBolt()   // picks any free slot
         if (fresh) {
           bolts.push(fresh)
-          const fadeInInterval = setInterval(() => {
-            fresh.fadeOut = Math.min(1, fresh.fadeOut + 0.04)
-            if (fresh.fadeOut >= 1) clearInterval(fadeInInterval)
-          }, 16)
         }
       }
 
       for (const bolt of bolts) drawBolt(bolt, tt)
       drawWrench(wr.x, wr.y, wr.angle, wr.snapped !== null)
+
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const s = sparks[i]
+        s.x += s.vx
+        s.y += s.vy
+        s.vy += 0.02
+        s.life -= 0.045
+        if (s.life <= 0) {
+          sparks.splice(i, 1)
+          continue
+        }
+        ctx.save()
+        ctx.globalAlpha = s.life * 0.85
+        ctx.fillStyle = '#CDE9DA'
+        ctx.beginPath()
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.restore()
+      }
 
       const distToWrench = Math.hypot(mouse.x - wr.x, mouse.y - wr.y)
       document.body.style.cursor = wr.dragging ? 'grabbing' : distToWrench < 65 ? 'grab' : 'default'
@@ -374,9 +440,9 @@ const skillCategories = [
 ]
 
 const tagStyles: Record<string, { bg: string; color: string; label: string }> = {
-  Strong:      { bg: 'rgba(74,155,127,0.18)',  color: '#4A9B7F',  label: 'Strong'      },
-  Comfortable: { bg: 'rgba(157,184,154,0.15)', color: '#9DB89A',  label: 'Comfortable' },
-  Learning:    { bg: 'rgba(196,205,184,0.12)', color: '#C4CDB8',  label: 'Learning'    },
+  Strong:      { bg: 'rgba(74,155,127,0.2)',  color: '#4A9B7F',  label: 'Strong'      },
+  Comfortable: { bg: 'rgba(157,184,154,0.18)', color: '#9DB89A',  label: 'Comfortable' },
+  Learning:    { bg: 'rgba(196,205,184,0.14)', color: '#C4CDB8',  label: 'Learning'    },
 }
 
 function SkillTag({ name, tag }: { name: string; tag: string }) {
@@ -385,30 +451,31 @@ function SkillTag({ name, tag }: { name: string; tag: string }) {
     <div style={{
       display: 'flex', alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0.5rem 0.75rem',
-      borderRadius: '10px',
-      marginBottom: '0.5rem',
-      background: 'rgba(255,255,255,0.03)',
-      border: '1px solid rgba(74,155,127,0.1)',
-      transition: 'all 0.2s',
+      padding: '0.58rem 0.8rem',
+      borderRadius: '12px',
+      marginBottom: '0.55rem',
+      background: 'linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))',
+      border: '1px solid rgba(157,184,154,0.14)',
+      transition: 'all 0.22s ease',
     }}
       onMouseEnter={e => {
-        e.currentTarget.style.background = 'rgba(74,155,127,0.07)'
-        e.currentTarget.style.borderColor = 'rgba(74,155,127,0.25)'
+        e.currentTarget.style.background = 'linear-gradient(90deg, rgba(74,155,127,0.09), rgba(157,184,154,0.05))'
+        e.currentTarget.style.borderColor = 'rgba(74,155,127,0.26)'
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
-        e.currentTarget.style.borderColor = 'rgba(74,155,127,0.1)'
+        e.currentTarget.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))'
+        e.currentTarget.style.borderColor = 'rgba(157,184,154,0.14)'
       }}
     >
-      <span style={{ color: '#C4CDB8', fontSize: '0.88rem', fontWeight: 500 }}>{name}</span>
+      <span style={{ color: '#D2D9CC', fontSize: '0.9rem', fontWeight: 550, letterSpacing: '0.01em' }}>{name}</span>
       <span style={{
-        fontSize: '0.72rem', fontWeight: 700,
-        padding: '0.18rem 0.6rem',
+        fontSize: '0.7rem', fontWeight: 750,
+        padding: '0.2rem 0.62rem',
         borderRadius: '100px',
         background: style.bg,
         color: style.color,
-        letterSpacing: '0.04em',
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
         border: `1px solid ${style.color}44`,
       }}>
         {style.label}
@@ -445,6 +512,7 @@ export default function Skills() {
       padding: '8rem 2rem',
       position: 'relative', // Necessary for absolute canvas positioning
       overflow: 'hidden', // Keeps the canvas contained
+      background: 'linear-gradient(180deg, rgba(36,30,33,0.1), rgba(36,30,33,0.28) 45%, rgba(36,30,33,0.16))',
     }}>
       
       {/* WRENCH & BOLTS BACKGROUND */}
@@ -455,8 +523,25 @@ export default function Skills() {
         maxWidth: '1100px',
         margin: '0 auto',
         position: 'relative',
-        zIndex: 1 // Keeps UI interactive and above the background
+        zIndex: 1, // Keeps UI interactive and above the background
       }}>
+        <div className="fade-in" style={{
+          opacity: 0, transform: 'translateY(30px)', transition: 'all 0.6s ease',
+          marginBottom: '1.5rem',
+          padding: '0.6rem 0.9rem',
+          width: 'fit-content',
+          borderRadius: '999px',
+          border: '1px solid rgba(157,184,154,0.25)',
+          background: 'rgba(24,20,22,0.52)',
+          color: '#B9C9BC',
+          fontSize: '0.78rem',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          fontWeight: 650,
+        }}>
+          Crafting reliable stacks
+        </div>
+
         {/* Section label */}
         <div className="fade-in" style={{
           opacity: 0, transform: 'translateY(30px)', transition: 'all 0.6s ease',
@@ -472,7 +557,8 @@ export default function Skills() {
         <h2 className="fade-in" style={{
           opacity: 0, transform: 'translateY(30px)', transition: 'all 0.6s ease',
           fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800,
-          marginBottom: '3.5rem', color: '#C4CDB8'
+          marginBottom: '1rem', color: '#D8DED2',
+          lineHeight: 1.15,
         }}>
           What I work with<br />
           <span style={{
@@ -480,6 +566,16 @@ export default function Skills() {
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
           }}>every day.</span>
         </h2>
+        <p className="fade-in" style={{
+          opacity: 0, transform: 'translateY(30px)', transition: 'all 0.6s ease',
+          margin: '0 0 3rem',
+          maxWidth: '640px',
+          color: '#AAB6AC',
+          lineHeight: 1.7,
+          fontSize: '0.98rem',
+        }}>
+          A focused toolkit for building polished web products and interactive experiences, with room to keep exploring new ideas.
+        </p>
 
         {/* Cards grid */}
         <div style={{
@@ -493,44 +589,58 @@ export default function Skills() {
               className="fade-in"
              style={{
                      opacity: 0, transform: 'translateY(30px)',
-                     background: 'rgba(36,30,33,0.6)', // Darker translucent background to pop against canvas
-                     backdropFilter: 'blur(8px)',
-                     border: `1px solid ${cat.color}33`,
+                     background: 'linear-gradient(180deg, rgba(36,30,33,0.72), rgba(36,30,33,0.54))',
+                     backdropFilter: 'blur(10px)',
+                     border: `1px solid ${cat.color}2e`,
                      borderRadius: '24px',
-                     padding: '1.8rem',
-                     transition: 'opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, box-shadow 0.3s',
+                     padding: '1.45rem',
+                     boxShadow: '0 10px 30px rgba(0,0,0,0.16)',
+                     transition: 'opacity 0.6s ease, transform 0.6s ease, border-color 0.3s, box-shadow 0.3s, background 0.3s',
                   }}
               onMouseEnter={e => {
-                e.currentTarget.style.borderColor = `${cat.color}88`
-                e.currentTarget.style.boxShadow = `0 8px 40px ${cat.color}22`
-                e.currentTarget.style.transform = 'translateY(-4px)'
+                e.currentTarget.style.borderColor = `${cat.color}7a`
+                e.currentTarget.style.boxShadow = `0 16px 45px ${cat.color}26`
+                e.currentTarget.style.background = 'linear-gradient(180deg, rgba(36,30,33,0.78), rgba(36,30,33,0.58))'
+                e.currentTarget.style.transform = 'translateY(-6px)'
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.borderColor = `${cat.color}33`
-                e.currentTarget.style.boxShadow = 'none'
+                e.currentTarget.style.borderColor = `${cat.color}2e`
+                e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.16)'
+                e.currentTarget.style.background = 'linear-gradient(180deg, rgba(36,30,33,0.72), rgba(36,30,33,0.54))'
                 e.currentTarget.style.transform = 'translateY(0)'
               }}
             >
               {/* Card header */}
               <div style={{
                 display: 'flex', alignItems: 'center', gap: '0.75rem',
-                marginBottom: '1.5rem',
+                justifyContent: 'space-between',
+                marginBottom: '1.3rem',
               }}>
-                <div style={{
-                  width: '44px', height: '44px', borderRadius: '12px',
-                  background: `${cat.color}22`,
-                  border: `1px solid ${cat.color}44`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1.4rem',
-                }}>
-                  {cat.icon}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{
+                    width: '44px', height: '44px', borderRadius: '12px',
+                    background: `${cat.color}22`,
+                    border: `1px solid ${cat.color}44`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1.4rem',
+                  }}>
+                    {cat.icon}
+                  </div>
+                  <h3 style={{
+                    color: '#D4DBD0', fontWeight: 700, fontSize: '1rem',
+                    lineHeight: 1.2,
+                  }}>
+                    {cat.title}
+                  </h3>
                 </div>
-                <h3 style={{
-                  color: '#C4CDB8', fontWeight: 700, fontSize: '1rem',
-                  lineHeight: 1.2,
+                <div style={{
+                  width: '9px',
+                  height: '9px',
+                  borderRadius: '50%',
+                  background: cat.color,
+                  boxShadow: `0 0 14px ${cat.color}88`,
                 }}>
-                  {cat.title}
-                </h3>
+                </div>
               </div>
 
               {/* Skill tags */}
@@ -549,10 +659,10 @@ export default function Skills() {
         <div className="fade-in" style={{
           opacity: 0, transform: 'translateY(30px)', transition: 'all 0.6s ease',
           textAlign: 'center', marginTop: '3rem',
-          color: '#9DB89A', fontSize: '0.9rem',
-          fontStyle: 'italic',
+          color: '#AEBCAE', fontSize: '0.9rem',
+          letterSpacing: '0.02em',
         }}>
-          Always learning — always building 🚀
+          Building with consistency, learning with curiosity.
         </div>
       </div>
     </section>

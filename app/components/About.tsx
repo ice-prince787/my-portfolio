@@ -142,9 +142,9 @@ function CubesBackground() {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(w, h)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
     renderer.setClearColor(0x000000, 0)
-    renderer.shadowMap.enabled = true
+    renderer.shadowMap.enabled = false
     renderer.domElement.style.position = 'absolute'
     renderer.domElement.style.top = '0'
     renderer.domElement.style.left = '0'
@@ -186,7 +186,7 @@ function CubesBackground() {
     const edgesGroup = new THREE.Group()
     scene.add(edgesGroup)
 
-    for (let i = 0; i < 28; i++) {
+    for (let i = 0; i < 18; i++) {
       const geoFn = geoOptions[Math.floor(Math.random() * geoOptions.length)]
       const geo = geoFn()
       const color = colors[Math.floor(Math.random() * colors.length)]
@@ -289,6 +289,7 @@ if (isWire) {
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
     }
 
+    let lastTrailTime = 0
     const onSectionMouseMove = (e: MouseEvent) => {
       getMouseVec(e)
       mouseDelta.copy(mouse).sub(prevMouse)
@@ -301,15 +302,19 @@ if (isWire) {
         draggedCube.mesh.position.copy(intersectPoint.add(dragOffset))
         draggedCube.vel.set(mouseDelta.x * 5, mouseDelta.y * 5, 0)
 
-        // Spawn trail
-        const mat = draggedCube.mesh.material as THREE.MeshPhongMaterial
-        const trailMesh = makeTrailMesh(mat.color)
-        trailMesh.position.copy(draggedCube.mesh.position)
-        scene.add(trailMesh)
-        draggedCube.trail.push({ mesh: trailMesh, life: 1.0 })
-        if (draggedCube.trail.length > 18) {
-          const old = draggedCube.trail.shift()!
-          scene.remove(old.mesh)
+        // Spawn trail at a capped rate to avoid frame drops
+        const now = performance.now()
+        if (now - lastTrailTime > 40) {
+          lastTrailTime = now
+          const mat = draggedCube.mesh.material as THREE.MeshPhongMaterial
+          const trailMesh = makeTrailMesh(mat.color)
+          trailMesh.position.copy(draggedCube.mesh.position)
+          scene.add(trailMesh)
+          draggedCube.trail.push({ mesh: trailMesh, life: 1.0 })
+          if (draggedCube.trail.length > 12) {
+            const old = draggedCube.trail.shift()!
+            scene.remove(old.mesh)
+          }
         }
       } else {
         const hits = raycaster.intersectObjects(cubes.map(c => c.mesh), true)
@@ -380,10 +385,15 @@ scene.add(pl4)
     const clock = new THREE.Clock()
     let frameId: number
     const BOUNDS = { x: 10, y: 7 }
+    let frameCount = 0
+    const tmpDiff = new THREE.Vector3()
+    const tmpRelVel = new THREE.Vector3()
+    const tmpImpulse = new THREE.Vector3()
 
     const animate = () => {
       frameId = requestAnimationFrame(animate)
       const t = clock.getElapsedTime()
+      frameCount += 1
 
       // Update cubes
       for (let i = 0; i < cubes.length; i++) {
@@ -405,33 +415,32 @@ scene.add(pl4)
           if (c.mesh.position.y < -BOUNDS.y) c.mesh.position.y = BOUNDS.y
         }
 
-        // Cube vs cube bouncing
-        for (let j = i + 1; j < cubes.length; j++) {
-          const c2 = cubes[j]
-          const diff = new THREE.Vector3().subVectors(c.mesh.position, c2.mesh.position)
-          const dist = diff.length()
-          const minDist = c.radius + c2.radius
+        // Collision checks every other frame to reduce CPU load
+        if (frameCount % 2 === 0) {
+          for (let j = i + 1; j < cubes.length; j++) {
+            const c2 = cubes[j]
+            tmpDiff.subVectors(c.mesh.position, c2.mesh.position)
+            const dist = tmpDiff.length()
+            const minDist = c.radius + c2.radius
 
-          if (dist < minDist && dist > 0) {
-            const normal = diff.normalize()
-            const overlap = minDist - dist
+            if (dist < minDist && dist > 0) {
+              const normal = tmpDiff.normalize()
+              const overlap = minDist - dist
 
-            // Push apart
-            c.mesh.position.addScaledVector(normal, overlap * 0.5)
-            c2.mesh.position.addScaledVector(normal, -overlap * 0.5)
+              c.mesh.position.addScaledVector(normal, overlap * 0.5)
+              c2.mesh.position.addScaledVector(normal, -overlap * 0.5)
 
-            // Exchange velocity along normal
-            const relVel = new THREE.Vector3().subVectors(c.vel, c2.vel)
-            const speed = relVel.dot(normal)
-            if (speed < 0) {
-              const impulse = normal.clone().multiplyScalar(speed * 0.85)
-              c.vel.sub(impulse)
-              c2.vel.add(impulse)
-              // Spin more on impact
-              c.rotVel.x += (Math.random() - 0.5) * 0.02
-              c.rotVel.y += (Math.random() - 0.5) * 0.02
-              c2.rotVel.x += (Math.random() - 0.5) * 0.02
-              c2.rotVel.y += (Math.random() - 0.5) * 0.02
+              tmpRelVel.subVectors(c.vel, c2.vel)
+              const speed = tmpRelVel.dot(normal)
+              if (speed < 0) {
+                tmpImpulse.copy(normal).multiplyScalar(speed * 0.85)
+                c.vel.sub(tmpImpulse)
+                c2.vel.add(tmpImpulse)
+                c.rotVel.x += (Math.random() - 0.5) * 0.02
+                c.rotVel.y += (Math.random() - 0.5) * 0.02
+                c2.rotVel.x += (Math.random() - 0.5) * 0.02
+                c2.rotVel.y += (Math.random() - 0.5) * 0.02
+              }
             }
           }
         }
@@ -460,6 +469,9 @@ scene.add(pl4)
       section.removeEventListener('mousedown', onSectionMouseDown)
       window.removeEventListener('mouseup', onMouseUp)
       window.removeEventListener('resize', onResize)
+      cubes.forEach(c => {
+        c.trail.forEach(tp => scene.remove(tp.mesh))
+      })
       if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement)
       renderer.dispose()
     }
@@ -473,6 +485,129 @@ scene.add(pl4)
       pointerEvents: 'none',
     }} />
   )
+}
+
+function ChipAvatar() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const el = canvasRef.current
+    if (!el) return
+
+    const scene = new THREE.Scene()
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100)
+    camera.position.z = 4
+
+    const renderer = new THREE.WebGLRenderer({ canvas: el, antialias: true, alpha: true })
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+    renderer.setSize(150, 150)
+    renderer.setClearColor(0x000000, 0)
+
+    const bodyGeo = new THREE.BoxGeometry(1.6, 0.18, 1.6)
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2D4F47, metalness: 0.8, roughness: 0.2 })
+    const body = new THREE.Mesh(bodyGeo, bodyMat)
+    scene.add(body)
+
+    const topGeo = new THREE.BoxGeometry(1.4, 0.02, 1.4)
+    const topMat = new THREE.MeshStandardMaterial({ color: 0x4A9B7F, metalness: 0.9, roughness: 0.1, emissive: new THREE.Color(0x4A9B7F), emissiveIntensity: 0.4 })
+    const top = new THREE.Mesh(topGeo, topMat)
+    top.position.y = 0.1
+    body.add(top)
+
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x9DB89A, transparent: true, opacity: 0.8 })
+    const linePositions = [
+      [-0.5, 0, -0.5, 0.5, 0, -0.5],
+      [-0.5, 0, 0, 0.5, 0, 0],
+      [-0.5, 0, 0.5, 0.5, 0, 0.5],
+      [-0.3, 0, -0.6, -0.3, 0, 0.6],
+      [0.3, 0, -0.6, 0.3, 0, 0.6],
+    ]
+    linePositions.forEach(pts => {
+      const geo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(pts[0], pts[1] + 0.12, pts[2]),
+        new THREE.Vector3(pts[3], pts[4] + 0.12, pts[5]),
+      ])
+      body.add(new THREE.Line(geo, lineMat))
+    })
+
+    const pinMat = new THREE.MeshStandardMaterial({ color: 0x9DB89A, metalness: 1, roughness: 0.1 })
+    const pinGeo = new THREE.BoxGeometry(0.04, 0.04, 0.12)
+    for (let side = 0; side < 4; side++) {
+      for (let p = -3; p <= 3; p++) {
+        const pin = new THREE.Mesh(pinGeo, pinMat)
+        if (side === 0) pin.position.set(p * 0.22, -0.05, 0.88)
+        else if (side === 1) pin.position.set(p * 0.22, -0.05, -0.88)
+        else if (side === 2) { pin.rotation.y = Math.PI / 2; pin.position.set(0.88, -0.05, p * 0.22) }
+        else { pin.rotation.y = Math.PI / 2; pin.position.set(-0.88, -0.05, p * 0.22) }
+        body.add(pin)
+      }
+    }
+
+    body.add(new THREE.LineSegments(new THREE.EdgesGeometry(bodyGeo), new THREE.LineBasicMaterial({ color: 0x4A9B7F, transparent: true, opacity: 0.6 })))
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5))
+    const pl = new THREE.PointLight(0x4A9B7F, 4, 10)
+    pl.position.set(3, 3, 3)
+    scene.add(pl)
+    const pl2 = new THREE.PointLight(0x9DB89A, 2, 8)
+    pl2.position.set(-3, -2, 2)
+    scene.add(pl2)
+
+    let isDragging = false
+    let prevX = 0
+    let prevY = 0
+    let velX = 0
+    let velY = 0
+    body.rotation.x = 0.55
+    body.rotation.y = 0.4
+
+    const onMouseDown = (e: MouseEvent) => {
+      isDragging = true
+      prevX = e.clientX
+      prevY = e.clientY
+      el.style.cursor = 'grabbing'
+    }
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return
+      velY = (e.clientX - prevX) * 0.018
+      velX = (e.clientY - prevY) * 0.018
+      prevX = e.clientX
+      prevY = e.clientY
+    }
+    const onMouseUp = () => {
+      isDragging = false
+      el.style.cursor = 'grab'
+    }
+
+    el.addEventListener('mousedown', onMouseDown)
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+    el.style.cursor = 'grab'
+
+    let frameId = 0
+    const animate = () => {
+      frameId = requestAnimationFrame(animate)
+      body.rotation.y += velY
+      body.rotation.x += velX
+      if (!isDragging) {
+        velY *= 0.92
+        velX *= 0.92
+        velY += 0.003
+        body.rotation.x += (0.55 - body.rotation.x) * 0.015
+      }
+      renderer.render(scene, camera)
+    }
+    animate()
+
+    return () => {
+      cancelAnimationFrame(frameId)
+      el.removeEventListener('mousedown', onMouseDown)
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+      renderer.dispose()
+    }
+  }, [])
+
+  return <canvas width={120} height={120} ref={canvasRef} />
 }
 
 export default function About() {
@@ -589,104 +724,7 @@ export default function About() {
               width: '150px', height: '150px',
               margin: '0 auto 1.5rem',
             }}>
-              <canvas
-                width={120}
-                height={120}
-                ref={el => {
-                  if (!el) return
-                  const T = require('three')
-                  const scene = new T.Scene()
-                  const camera = new T.PerspectiveCamera(45, 1, 0.1, 100)
-                  camera.position.z = 4
-                  const renderer = new T.WebGLRenderer({ canvas: el, antialias: true, alpha: true })
-                  renderer.setSize(150, 150)
-                  renderer.setClearColor(0x000000, 0)
-
-                  const bodyGeo = new T.BoxGeometry(1.6, 0.18, 1.6)
-                  const bodyMat = new T.MeshStandardMaterial({ color: 0x2D4F47, metalness: 0.8, roughness: 0.2 })
-                  const body = new T.Mesh(bodyGeo, bodyMat)
-                  scene.add(body)
-
-                  const topGeo = new T.BoxGeometry(1.4, 0.02, 1.4)
-                  const topMat = new T.MeshStandardMaterial({ color: 0x4A9B7F, metalness: 0.9, roughness: 0.1, emissive: new T.Color(0x4A9B7F), emissiveIntensity: 0.4 })
-                  const top = new T.Mesh(topGeo, topMat)
-                  top.position.y = 0.1
-                  body.add(top)
-
-                  const lineMat = new T.LineBasicMaterial({ color: 0x9DB89A, transparent: true, opacity: 0.8 })
-                  const linePositions = [
-                    [-0.5, 0, -0.5, 0.5, 0, -0.5],
-                    [-0.5, 0, 0, 0.5, 0, 0],
-                    [-0.5, 0, 0.5, 0.5, 0, 0.5],
-                    [-0.3, 0, -0.6, -0.3, 0, 0.6],
-                    [0.3, 0, -0.6, 0.3, 0, 0.6],
-                  ]
-                  linePositions.forEach(pts => {
-                    const geo = new T.BufferGeometry().setFromPoints([
-                      new T.Vector3(pts[0], pts[1] + 0.12, pts[2]),
-                      new T.Vector3(pts[3], pts[4] + 0.12, pts[5]),
-                    ])
-                    body.add(new T.Line(geo, lineMat))
-                  })
-
-                  const pinMat = new T.MeshStandardMaterial({ color: 0x9DB89A, metalness: 1, roughness: 0.1 })
-                  const pinGeo = new T.BoxGeometry(0.04, 0.04, 0.12)
-                  for (let side = 0; side < 4; side++) {
-                    for (let p = -3; p <= 3; p++) {
-                      const pin = new T.Mesh(pinGeo, pinMat)
-                      if (side === 0) pin.position.set(p * 0.22, -0.05, 0.88)
-                      else if (side === 1) pin.position.set(p * 0.22, -0.05, -0.88)
-                      else if (side === 2) { pin.rotation.y = Math.PI / 2; pin.position.set(0.88, -0.05, p * 0.22) }
-                      else { pin.rotation.y = Math.PI / 2; pin.position.set(-0.88, -0.05, p * 0.22) }
-                      body.add(pin)
-                    }
-                  }
-
-                  body.add(new T.LineSegments(new T.EdgesGeometry(bodyGeo), new T.LineBasicMaterial({ color: 0x4A9B7F, transparent: true, opacity: 0.6 })))
-
-                  scene.add(new T.AmbientLight(0xffffff, 0.5))
-                  const pl = new T.PointLight(0x4A9B7F, 4, 10)
-                  pl.position.set(3, 3, 3)
-                  scene.add(pl)
-                  const pl2 = new T.PointLight(0x9DB89A, 2, 8)
-                  pl2.position.set(-3, -2, 2)
-                  scene.add(pl2)
-
-                  let isDragging = false
-                  let prevX = 0, prevY = 0
-                  let velX = 0, velY = 0
-                  // Set initial cool diagonal tilt
-                  body.rotation.x = 0.55
-                  body.rotation.y = 0.4
-
-                  el.addEventListener('mousedown', e => { isDragging = true; prevX = e.clientX; prevY = e.clientY; el.style.cursor = 'grabbing' })
-                  window.addEventListener('mousemove', e => {
-                    if (!isDragging) return
-                    velY = (e.clientX - prevX) * 0.018
-                    velX = (e.clientY - prevY) * 0.018
-                    prevX = e.clientX; prevY = e.clientY
-                  })
-                  window.addEventListener('mouseup', () => { isDragging = false; el.style.cursor = 'grab' })
-                  el.style.cursor = 'grab'
-
-                  const animate = () => {
-                    requestAnimationFrame(animate)
-                    body.rotation.y += velY
-                    body.rotation.x += velX
-                    if (!isDragging) {
-                      // Slow friction — velocity dies smoothly
-                      velY *= 0.92
-                      velX *= 0.92
-                      // Slow constant Y spin — like Apple product showcase
-                      velY += 0.003
-                      // Gently ease X back to the cool tilt so top face stays visible
-                      body.rotation.x += (0.55 - body.rotation.x) * 0.015
-                    }
-                    renderer.render(scene, camera)
-                  }
-                  animate()
-                }}
-              />
+              <ChipAvatar />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
