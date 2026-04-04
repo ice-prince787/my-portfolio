@@ -116,10 +116,10 @@ export const BSOD_MAP: Record<string, BSODInfo> = {
     message: 'POWER_SUPPLY_REMOVED',
     detail: 'Power supply unit disconnected. All system power has been cut. How are you even reading this? The PC should be completely off. This defies the laws of physics.',
     project: {
-      title: 'Jarvis',
-      description: 'Made in Python — opens websites and searches online with speech recognition in English. Just talk to it. It listens. Powered by the PSU you just ripped out.',
-      tech: ['Python', 'SpeechRecognition', 'webbrowser'],
-      screenshots: ['/project-jarvis-1.png', '/project-jarvis-2.png'],
+      title: 'Chess 3D',
+      description: 'A 3D chess game made in Unity with C# and VFX. The PSU was used to power the game and the chess pieces.',
+      tech: ['Unity', 'C#', 'Windows'],
+      screenshots: ['/project-chess-1.png', '/project-chess-2.png', '/project-chess-3.png'],
     },
   },
 }
