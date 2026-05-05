@@ -14,21 +14,21 @@ export default function Motherboard() {
         <line key={`v${i}`} x1={i * 34} y1="0" x2={i * 34} y2="480" stroke="rgba(74,155,127,0.04)" strokeWidth="1"/>
       ))}
 
-      {/* CPU socket area */}
-      <rect x="30" y="60" width="130" height="130" rx="4" fill="#111" stroke="rgba(74,155,127,0.3)" strokeWidth="1.5" strokeDasharray="4 2"/>
-      <text x="95" y="132" fontFamily="monospace" fontSize="7" fill="rgba(74,155,127,0.4)" textAnchor="middle">LGA1700</text>
+      {/* CPU socket area on the right */}
+      <rect x="175" y="60" width="130" height="130" rx="4" fill="#111" stroke="rgba(74,155,127,0.3)" strokeWidth="1.5" strokeDasharray="4 2"/>
+      <text x="240" y="132" fontFamily="monospace" fontSize="7" fill="rgba(74,155,127,0.4)" textAnchor="middle">LGA1700</text>
       {/* Socket pins grid */}
       {[...Array(8)].map((_, row) =>
         [...Array(8)].map((_, col) => (
-          <circle key={`${row}-${col}`} cx={42 + col * 14} cy={72 + row * 14} r="1.5"
+          <circle key={`${row}-${col}`} cx={187 + col * 14} cy={72 + row * 14} r="1.5"
             fill="rgba(255,215,0,0.3)"/>
         ))
       )}
 
-      {/* RAM slots */}
-      <text x="200" y="56" fontFamily="monospace" fontSize="7" fill="rgba(74,155,127,0.4)">DDR5</text>
+      {/* RAM slots on the left */}
+      <text x="44" y="56" fontFamily="monospace" fontSize="7" fill="rgba(74,155,127,0.4)">DDR5</text>
       {[0, 1, 2, 3].map(i => (
-        <rect key={i} x={188 + i * 38} y="60" width="28" height="130" rx="2"
+        <rect key={i} x={30 + i * 38} y="60" width="28" height="130" rx="2"
           fill="#111" stroke="rgba(74,155,127,0.25)" strokeWidth="1"
           strokeDasharray={i < 2 ? "none" : "3 2"}/>
       ))}
@@ -85,8 +85,8 @@ export default function Motherboard() {
       ))}
 
       {/* Decorative traces */}
-      <path d="M160 125 L200 125 L200 190 L380 190" stroke="rgba(74,155,127,0.12)" strokeWidth="1.5" fill="none"/>
-      <path d="M95 190 L95 232" stroke="rgba(74,155,127,0.1)" strokeWidth="1.5" fill="none"/>
+      <path d="M106 125 L175 125 L175 190 L380 190" stroke="rgba(74,155,127,0.12)" strokeWidth="1.5" fill="none"/>
+      <path d="M240 190 L240 232" stroke="rgba(74,155,127,0.1)" strokeWidth="1.5" fill="none"/>
       <path d="M380 190 L380 322 L210 322" stroke="rgba(74,155,127,0.08)" strokeWidth="1.5" fill="none"/>
       <path d="M335 340 L335 232 L374 232" stroke="rgba(74,155,127,0.1)" strokeWidth="1" fill="none"/>
 

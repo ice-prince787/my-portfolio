@@ -11,6 +11,7 @@ import CPUCooler from './pc-components/CPUCooler'
 import SSD from './pc-components/SSD'
 import PSU from './pc-components/PSU'
 import Window from './pc-components/Window'
+import Monitor, { MonitorDesktop } from './pc-components/Monitor'
 
 const COMPONENTS = ['gpu', 'ram1', 'ram2', 'cpu', 'cooler', 'ssd', 'psu'] as const
 type ComponentId = typeof COMPONENTS[number]
@@ -27,10 +28,10 @@ const LABELS: Record<ComponentId, string> = {
 }
 
 const SLOTS: Record<ComponentId, React.CSSProperties> = {
-  cpu:    { left: 30,  top: 60,  width: 90,  height: 90 },
-  cooler: { left: 15,  top: 45,  width: 120, height: 120 },
-  ram1:   { left: 188, top: 60,  width: 28,  height: 130 },
-  ram2:   { left: 226, top: 60,  width: 28,  height: 130 },
+  cpu:    { left: 195, top: 60,  width: 90,  height: 90 },
+  cooler: { left: 180, top: 45,  width: 120, height: 120 },
+  ram1:   { left: 30,  top: 60,  width: 28,  height: 130 },
+  ram2:   { left: 68,  top: 60,  width: 28,  height: 130 },
   gpu:    { left: 30,  top: 232, width: 220, height: 80 },
   ssd:    { left: 30,  top: 322, width: 160, height: 32 },
   psu:    { left: 390, top: 360, width: 130, height: 70 },
@@ -173,19 +174,31 @@ export default function Projects() {
           animation: 'roomBreathe 8s ease-in-out infinite',
         }} />
 
-        {/* Floor */}
+        {/* Sleek Desk Surface */}
         <div style={{
           position: 'absolute',
           left: 0,
           right: 0,
           bottom: 0,
-          height: '26%',
-          background: 'linear-gradient(180deg, #3a3028 0%, #30271f 100%)',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          height: '32%',
+          background: 'linear-gradient(180deg, #151a1e 0%, #0a0d10 100%)',
+          borderTop: '1px solid rgba(132, 174, 230, 0.15)',
+          boxShadow: 'inset 0 20px 40px rgba(0,0,0,0.8)',
+          zIndex: 0,
+        }} />
+
+        {/* Subtle Under-Monitor Ambient Glow on the Desk */}
+        <div style={{
+          position: 'absolute',
+          left: '30%',
+          bottom: '15%',
+          width: '40%',
+          height: '10%',
+          background: 'radial-gradient(ellipse at center, rgba(132,174,230,0.08) 0%, transparent 70%)',
+          filter: 'blur(10px)',
+          zIndex: 0,
         }} />
       </div>
-
-      {bsod && <BSOD info={bsod} onRestart={handleRestart} />}
 
       {bootAnim && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 8000, background: '#000', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', animation: 'bootFade 1.8s ease forwards' }}>
@@ -213,8 +226,49 @@ export default function Projects() {
           </p>
         </div>
 
-        {/* PC Case */}
-        <div className="fade-up" style={{ opacity: 0, transform: 'translateY(40px)', transition: 'all 0.8s ease 0.2s', display: 'inline-block', position: 'relative' }}>
+      </div>
+
+      {/* Desk layout: futuristic monitor left, PC case right */}
+      <div className="fade-up" style={{
+        opacity: 0,
+        transform: 'translateY(40px)',
+        transition: 'all 0.8s ease 0.2s',
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 'clamp(2rem, 5vw, 4rem)',
+        paddingLeft: '1rem',
+        paddingRight: '1rem',
+        marginTop: '2rem',
+        position: 'relative',
+        zIndex: 1,
+        flexWrap: 'wrap',
+      }}>
+        <div style={{ position: 'relative', alignSelf: 'center' }}>
+          {/* Monitor Floor Shadow */}
+          <div style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: -15,
+            width: '50%',
+            height: 15,
+            transform: 'translateX(-50%)',
+            borderRadius: '50%',
+            background: 'radial-gradient(ellipse, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 70%)',
+            filter: 'blur(3px)',
+            pointerEvents: 'none',
+            zIndex: 0,
+          }} />
+          
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <Monitor>
+              {bsod ? <BSOD key={bsod.code} info={bsod} onRestart={handleRestart} embedded /> : <MonitorDesktop />}
+            </Monitor>
+          </div>
+        </div>
+
+        <div style={{ display: 'inline-block', position: 'relative' }}>
           {/* Floor contact shadow so PC feels grounded */}
           <div style={{
             position: 'absolute',
@@ -257,8 +311,17 @@ export default function Projects() {
               </span>
             </div>
 
-            {/* Tempered glass glare */}
-            <div style={{ position: 'absolute', inset: 22, background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 40%)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 8, pointerEvents: 'none', zIndex: 200 }}/>
+            {/* Tempered glass glare & tint */}
+            <div style={{ 
+              position: 'absolute', 
+              inset: 22, 
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.01) 35%, transparent 100%)', 
+              border: '1px solid rgba(255,255,255,0.1)', 
+              borderRadius: 8, 
+              pointerEvents: 'none', 
+              zIndex: 200,
+              boxShadow: 'inset 0 0 20px rgba(0,0,0,0.6)'
+            }}/>
 
             {/* Interior */}
             <div style={{
@@ -277,7 +340,7 @@ export default function Projects() {
                 {/* Cozy CPU backlight zone */}
                 <div style={{
                   position: 'absolute',
-                  left: 22,
+                  left: 187,
                   top: 54,
                   width: 108,
                   height: 108,
@@ -290,7 +353,7 @@ export default function Projects() {
                 }} />
                 <div style={{
                   position: 'absolute',
-                  left: 36,
+                  left: 201,
                   top: 68,
                   width: 80,
                   height: 80,
