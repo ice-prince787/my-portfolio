@@ -1,5 +1,10 @@
 'use client'
 import React, { useEffect, useState, useRef } from 'react'
+import { motion } from 'framer-motion'
+import { Bebas_Neue, Space_Mono } from 'next/font/google'
+
+const bebas = Bebas_Neue({ weight: '400', subsets: ['latin'] })
+const spaceMono = Space_Mono({ weight: ['400', '700'], subsets: ['latin'] })
 
 const roles = ['Full-Stack Developer', 'React Enthusiast', 'Problem Solver', 'Open to Work']
 
@@ -61,20 +66,31 @@ export default function Hero() {
     let lastMouse = { x: -9999, y: -9999 }
     let mouseVel = { x: 0, y: 0 }
 
+    const spawnOutsideCenter = () => {
+      const cx = width * 0.5, cy = height * 0.5
+      const avoidW = width * 0.32, avoidH = height * 0.36
+      let x = Math.random() * width, y = Math.random() * height
+      for (let t = 0; t < 24 && Math.abs(x - cx) < avoidW && Math.abs(y - cy) < avoidH; t++) {
+        x = Math.random() * width
+        y = Math.random() * height
+      }
+      return { x, y }
+    }
+
     const initCuteScene = () => {
-      const charmCount = Math.max(46, Math.floor((width * height) / 32000))
-      const cx = width * 0.5
-      const cy = height * 0.5
-      charms = Array.from({ length: charmCount }, (_, i) => ({
-        x: cx + (Math.random() - 0.5) * 80, y: cy + (Math.random() - 0.5) * 80,
-        baseX: Math.random() * width, baseY: Math.random() * height,
+      const charmCount = Math.max(36, Math.floor((width * height) / 42000))
+      charms = Array.from({ length: charmCount }, (_, i) => {
+        const pos = spawnOutsideCenter()
+        return {
+        x: pos.x, y: pos.y,
+        baseX: pos.x, baseY: pos.y,
         vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.28,
         size: 7 + Math.random() * 12, rot: Math.random() * Math.PI * 2, rotV: (Math.random() - 0.5) * 0.02,
         bobPhase: Math.random() * Math.PI * 2, bobAmp: 4 + Math.random() * 8,
         kind: (['diamond','star','heart','moon','flower','bow','clover','comet'] as const)[i % 8],
         hue: [329,272,158,204,43,340,128,196][i % 8], alpha: 0.42 + Math.random() * 0.28,
-      }))
-      const sparkleCount = Math.max(30, Math.floor((width * height) / 52000))
+      }})
+      const sparkleCount = Math.max(18, Math.floor((width * height) / 72000))
       sparkles = Array.from({ length: sparkleCount }, () => ({
         x: Math.random() * width, y: Math.random() * height, size: 0.8 + Math.random() * 1.8,
         twinkle: 0.001 + Math.random() * 0.0022, phase: Math.random() * Math.PI * 2,
@@ -85,7 +101,7 @@ export default function Hero() {
 
     const initSpaceScene = () => {
       stars = []
-      const total = Math.floor((width * height) / 3800)
+      const total = Math.floor((width * height) / 5200)
       for (let i = 0; i < total; i++) {
         const layer = i % 3
         stars.push({
@@ -134,8 +150,8 @@ export default function Hero() {
         for (let j = i + 1; j < charms.length; j++) {
           const a = charms[i], b = charms[j]
           const d = Math.hypot(a.x - b.x, a.y - b.y)
-          if (d < 130) {
-            ctx.strokeStyle = `rgba(240,215,248,${0.13 * (1 - d / 130)})`
+          if (d < 110) {
+            ctx.strokeStyle = `rgba(240,215,248,${0.08 * (1 - d / 110)})`
             ctx.lineWidth = 0.8
             ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke()
           }
@@ -144,11 +160,11 @@ export default function Hero() {
       for (const c of charms) {
         if (hasMouse) {
           const dx = mouse.x - c.x; const dy = mouse.y - c.y; const dist = Math.hypot(dx, dy) || 1
-          if (dist < 220) {
-            const force = (220 - dist) / 220; const tangent = Math.atan2(dy, dx) + Math.PI / 2
-            c.vx += Math.cos(tangent) * force * 0.055; c.vy += Math.sin(tangent) * force * 0.055
-            c.vx += (dx / dist) * force * 0.018; c.vy += (dy / dist) * force * 0.018; c.rotV += force * 0.01
-            if (Math.random() < 0.08) trails.push({ x: c.x, y: c.y, r: 2 + Math.random() * 2, life: 1, driftX: (Math.random() - 0.5) * 0.5, driftY: -0.2 - Math.random() * 0.4 })
+          if (dist < 180) {
+            const force = (180 - dist) / 180; const tangent = Math.atan2(dy, dx) + Math.PI / 2
+            c.vx += Math.cos(tangent) * force * 0.032; c.vy += Math.sin(tangent) * force * 0.032
+            c.vx += (dx / dist) * force * 0.01; c.vy += (dy / dist) * force * 0.01; c.rotV += force * 0.005
+            if (Math.random() < 0.03) trails.push({ x: c.x, y: c.y, r: 2 + Math.random() * 2, life: 1, driftX: (Math.random() - 0.5) * 0.5, driftY: -0.2 - Math.random() * 0.4 })
           }
         }
         const targetX = c.baseX + Math.cos(time * 0.0007 + c.bobPhase) * c.bobAmp
@@ -349,8 +365,6 @@ export default function Hero() {
     }, 300)
   }
 
-  // Section must fill exactly one viewport height accounting for zoom
-  // otherwise About section bleeds through at >100% zoom
   const [sectionH, setSectionH] = React.useState('100vh')
   React.useEffect(() => {
     const update = () => {
@@ -362,183 +376,720 @@ export default function Hero() {
     return () => window.removeEventListener('resize', update)
   }, [])
 
+  type ChaosFragment = {
+    t: string
+    rot: number
+    size: string
+    color: string
+    opacity: number
+    top?: string
+    left?: string
+    right?: string
+    bottom?: string
+  }
+  const nameLetters = 'DIPANKAR'.split('')
+  const letterRots = [-5, 3, -2, 5, -3, 2, -4, 3]
+
+  // Edge-only labels — each slot is a unique corner/edge coordinate
+  const chaosFragments: ChaosFragment[] = [
+    { t: 'RAW', top: '8%', left: '2%', rot: -16, size: 'clamp(1.5rem,4.5vw,2.4rem)', color: '#ff3d7f', opacity: 0.11 },
+    { t: 'SHIP IT', top: '9%', right: '22%', rot: 10, size: 'clamp(0.7rem,1.5vw,0.88rem)', color: '#ffe14d', opacity: 0.6 },
+    { t: '///', top: '11%', left: '28%', rot: 14, size: 'clamp(0.9rem,2vw,1.2rem)', color: '#4A9B7F', opacity: 0.22 },
+    { t: 'STACK', bottom: '28%', left: '2%', rot: -12, size: 'clamp(0.65rem,1.3vw,0.8rem)', color: '#9DB89A', opacity: 0.48 },
+    { t: 'REACT', bottom: '26%', right: '2%', rot: 8, size: 'clamp(0.62rem,1.25vw,0.78rem)', color: '#ff3d7f', opacity: 0.42 },
+    { t: 'PUNK', top: '52%', left: '2%', rot: -20, size: 'clamp(0.7rem,1.4vw,0.85rem)', color: '#ff3d7f', opacity: 0.5 },
+    { t: 'PRO', top: '52%', right: '2%', rot: 20, size: 'clamp(1.1rem,2.8vw,1.6rem)', color: '#4A9B7F', opacity: 0.09 },
+    { t: '404', bottom: '8%', right: '18%', rot: 72, size: '0.58rem', color: '#9DB89A', opacity: 0.38 },
+    { t: 'GET IT DONE', bottom: '8%', left: '18%', rot: 6, size: 'clamp(0.52rem,1.1vw,0.72rem)', color: '#ffe14d', opacity: 0.52 },
+  ]
+
   return (
-    <section style={{
+    <section className="hero-chaos-section" style={{
       minHeight: sectionH,
       height: sectionH,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '0 2rem',
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Theme background canvas */}
       <canvas ref={canvasRef} style={{
         position: 'absolute', top: 0, left: 0,
         width: '100%', height: '100%',
         pointerEvents: 'none', zIndex: 0
       }} />
 
-      {/* Content */}
-      <div style={{ textAlign: 'center', maxWidth: '800px', zIndex: 1, position: 'relative' }}>
-        <div style={{
-          display: 'inline-flex',
-          gap: '0.45rem',
-          padding: '0.35rem',
-          marginBottom: '1rem',
-          borderRadius: '999px',
-          background: 'rgba(18,18,24,0.45)',
-          border: '1px solid rgba(196,205,184,0.26)',
-          backdropFilter: 'blur(6px)',
-        }}>
-          <button
-            type="button"
-            onClick={() => setBgTheme('cute')}
+      <motion.div
+        className="chaos-stage"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        style={{ zIndex: 1 }}
+      >
+        <div className="chaos-vignette" aria-hidden />
+
+        {/* Punk decor — edges only, never over center */}
+        <motion.div className="chaos-stripe chaos-stripe-a" aria-hidden />
+        <motion.div className="chaos-stripe chaos-stripe-b" aria-hidden />
+        <motion.div className="chaos-stripe chaos-stripe-c" aria-hidden />
+        <svg className="chaos-spike chaos-spike-tl" viewBox="0 0 80 80" aria-hidden><polygon points="0,0 80,0 0,80" fill="#ff3d7f" opacity="0.35" /></svg>
+        <svg className="chaos-spike chaos-spike-tr" viewBox="0 0 80 80" aria-hidden><polygon points="80,0 80,80 0,0" fill="#ffe14d" opacity="0.3" /></svg>
+        <svg className="chaos-spike chaos-spike-bl" viewBox="0 0 80 80" aria-hidden><polygon points="0,80 80,80 0,0" fill="#4A9B7F" opacity="0.28" /></svg>
+        <svg className="chaos-spike chaos-spike-br" viewBox="0 0 80 80" aria-hidden><polygon points="80,80 0,80 80,0" fill="#ff3d7f" opacity="0.32" /></svg>
+        <span className="chaos-pin chaos-pin-1" aria-hidden />
+        <span className="chaos-pin chaos-pin-2" aria-hidden />
+
+        <motion.div className="chaos-theme">
+          <button type="button" onClick={() => setBgTheme('cute')} className={bgTheme === 'cute' ? 'active' : ''}>CUTE</button>
+          <button type="button" onClick={() => setBgTheme('space')} className={bgTheme === 'space' ? 'active' : ''}>SPACE</button>
+        </motion.div>
+
+        {chaosFragments.map((f, i) => (
+          <motion.span
+            key={f.t}
+            className="chaos-fragment"
             style={{
-              border: 'none',
-              borderRadius: '999px',
-              padding: '0.38rem 0.92rem',
-              cursor: 'pointer',
-              fontSize: '0.74rem',
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              color: bgTheme === 'cute' ? '#ffffff' : '#C4CDB8',
-              background: bgTheme === 'cute' ? 'linear-gradient(135deg, #ee9ad4, #b9a6ff)' : 'transparent',
+              top: f.top,
+              left: f.left,
+              right: f.right,
+              bottom: f.bottom,
+              fontSize: f.size,
+              color: f.color,
+              opacity: f.opacity,
+              transform: `rotate(${f.rot}deg)`,
             }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: f.opacity, scale: 1 }}
+            transition={{ delay: 0.1 + i * 0.04 }}
           >
-            Cute
-          </button>
-          <button
-            type="button"
-            onClick={() => setBgTheme('space')}
-            style={{
-              border: 'none',
-              borderRadius: '999px',
-              padding: '0.38rem 0.92rem',
-              cursor: 'pointer',
-              fontSize: '0.74rem',
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              color: bgTheme === 'space' ? '#ffffff' : '#C4CDB8',
-              background: bgTheme === 'space' ? 'linear-gradient(135deg, #4A9B7F, #2f4f47)' : 'transparent',
-            }}
+            {f.t}
+          </motion.span>
+        ))}
+
+        {/* Central Name Elements */}
+        <div className={`chaos-name-ghost ${bebas.className}`} aria-hidden>DIPANKAR</div>
+        <motion.div className="chaos-name-glow" aria-hidden />
+
+        <div className="chaos-hero-anchor">
+        <motion.div
+          className="chaos-hero-core"
+          initial={{ opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1, type: 'spring', stiffness: 90 }}
+        >
+          <motion.span
+            className="chaos-greeting"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.16 }}
           >
-            Space
-          </button>
+            HI, I&apos;M
+          </motion.span>
+          <motion.h1
+            className={`chaos-name ${bebas.className}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.24 }}
+          >
+            {nameLetters.map((ch, i) => (
+              <motion.span
+                key={`${ch}-${i}`}
+                className="chaos-letter"
+                initial={{ opacity: 0, y: 16, rotate: letterRots[i] - 20 }}
+                animate={{ opacity: 1, y: 0, rotate: letterRots[i] }}
+                transition={{ delay: 0.28 + i * 0.04, type: 'spring', stiffness: 120 }}
+              >
+                {ch}
+              </motion.span>
+            ))}
+          </motion.h1>
+          <motion.div
+            className="chaos-name-underline"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: 0.5, duration: 0.35 }}
+          />
+        </motion.div>
         </div>
 
-        {/* Badge */}
-        <div style={{
-          display: 'inline-block',
-          background: 'rgba(196,205,184,0.12)',
-          border: '1px solid rgba(196,205,184,0.4)',
-          borderRadius: '100px', padding: '0.4rem 1.2rem',
-          fontSize: '0.85rem', color: '#C4CDB8',
-          marginBottom: '1.8rem', fontWeight: 500,
-        }}>
-          ✨ Available for new opportunities
-        </div>
+        {/* Info Boxes & CTAs — each in its own zone, no overlap */}
+        
+        <motion.div
+          className={`chaos-role ${spaceMono.className}`}
+          initial={{ opacity: 0, x: 24 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.42 }}
+        >
+          <span className="chaos-role-tag">ROLE</span>
+          <span className="chaos-bracket">&lt;&lt;</span>
+          <span className="chaos-role-val">{displayed}</span>
+          <span className="chaos-cursor" />
+          <span className="chaos-bracket">&gt;&gt;</span>
+        </motion.div>
 
-        {/* Name */}
-        <h1 style={{
-          fontSize: 'clamp(2.8rem, 7vw, 5.5rem)',
-          fontWeight: 800, lineHeight: 1.1,
-          marginBottom: '1rem',
-          background: 'linear-gradient(135deg, #C4CDB8 0%, #4A9B7F 50%, #9DB89A 100%)',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-        }}>
-          Hi, I'm Dipankar
-        </h1>
+        <motion.div
+          className="chaos-sticker"
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.35, type: 'spring' }}
+        >
+          <span className="chaos-sticker-pin" />
+          ⚡ OPEN FOR WORK
+        </motion.div>
 
-        {/* Typing animation */}
-        <div style={{
-          fontSize: 'clamp(1.2rem, 3vw, 1.8rem)',
-          fontWeight: 600, marginBottom: '1.5rem',
-          minHeight: '2.5rem'
-        }}>
-          <span style={{ color: '#9DB89A' }}>{'< '}</span>
-          <span style={{ color: '#C4CDB8' }}>{displayed}</span>
-          <span style={{
-            display: 'inline-block', width: '2px', height: '1.2em',
-            background: '#C4CDB8', marginLeft: '2px',
-            verticalAlign: 'middle',
-            animation: 'blink 1s step-end infinite'
-          }} />
-          <span style={{ color: '#9DB89A' }}>{' />'}</span>
-        </div>
+        <motion.p
+          className="chaos-line chaos-line-a"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          I build fast, beautiful, scalable web apps —
+        </motion.p>
 
-        {/* Tagline */}
-        <p style={{
-          fontSize: 'clamp(1rem, 2vw, 1.15rem)',
-          color: '#9DB89A', maxWidth: '560px',
-          margin: '0 auto 2.5rem', lineHeight: 1.7
-        }}>
-          I build fast, beautiful, and scalable web apps that people actually enjoy using.
-          Let's turn your ideas into reality.
-        </p>
+        <motion.p
+          className="chaos-line chaos-line-b"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.58 }}
+        >
+          chaotic energy, <em>professional</em> output. I ship. You win.
+        </motion.p>
 
-        {/* CTA Buttons */}
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a href="https://dipankarr.itch.io" target="_blank" rel="noopener noreferrer" style={{
-            background: 'linear-gradient(135deg, #4A9B7F, #9DB89A)',
-            color: 'white', padding: '0.85rem 2rem',
-            borderRadius: '12px', textDecoration: 'none',
-            fontSize: '1rem', fontWeight: 600,
-            boxShadow: '0 0 30px rgba(74,155,127,0.4)',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            position: 'relative', overflow: 'visible',
+        <motion.a
+          href="https://dipankarr.itch.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="chaos-btn chaos-btn-work"
+          initial={{ opacity: 0, rotate: -15 }}
+          animate={{ opacity: 1, rotate: -6 }}
+          transition={{ delay: 0.72 }}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'rotate(-3deg) scale(1.05)'
+            startOrbit(e.currentTarget as HTMLAnchorElement, '#0a0a0a')
           }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-2px)'
-              e.currentTarget.style.boxShadow = '0 0 45px rgba(157,184,154,0.5)'
-              startOrbit(e.currentTarget as HTMLAnchorElement, '#ffffff')
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = '0 0 30px rgba(74,155,127,0.4)'
-              stopOrbit(e.currentTarget as HTMLAnchorElement)
-            }}
-          >
-            View My Work 🚀
-          </a>
-          <a href="#contact" style={{
-            background: 'transparent',
-            color: '#C4CDB8', padding: '0.85rem 2rem',
-            borderRadius: '12px', textDecoration: 'none',
-            fontSize: '1rem', fontWeight: 600,
-            border: '1px solid rgba(196,205,184,0.5)',
-            transition: 'all 0.2s',
-            position: 'relative', overflow: 'visible',
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'rotate(-6deg)'
+            stopOrbit(e.currentTarget as HTMLAnchorElement)
           }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(196,205,184,0.1)'
-              e.currentTarget.style.borderColor = '#C4CDB8'
-              startOrbit(e.currentTarget as HTMLAnchorElement, '#C4CDB8')
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.borderColor = 'rgba(196,205,184,0.5)'
-              stopOrbit(e.currentTarget as HTMLAnchorElement)
-            }}
-          >
-            Get In Touch 💌
-          </a>
-        </div>
+        >
+          VIEW WORK →
+        </motion.a>
 
-        {/* Scroll hint */}
-        <div style={{ marginTop: '4rem', color: '#9DB89A', fontSize: '0.85rem' }}>
-          <div style={{
-            width: '1px', height: '50px',
-            background: 'linear-gradient(to bottom, #4A9B7F, transparent)',
-            margin: '0 auto 0.5rem'
-          }} />
-          scroll down
-        </div>
-      </div>
+        <motion.a
+          href="#contact"
+          className="chaos-btn chaos-btn-hire"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.68, type: 'spring' }}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'rotate(-2deg) scale(1.06)'
+            startOrbit(e.currentTarget as HTMLAnchorElement, '#0a0a0a')
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'rotate(-4deg)'
+            stopOrbit(e.currentTarget as HTMLAnchorElement)
+          }}
+        >
+          HIRE ME →
+        </motion.a>
+
+        <motion.a
+          href="#contact"
+          className="chaos-btn chaos-btn-contact"
+          initial={{ opacity: 0, rotate: 12 }}
+          animate={{ opacity: 1, rotate: 7 }}
+          transition={{ delay: 0.78 }}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'rotate(4deg) scale(1.05)'
+            startOrbit(e.currentTarget as HTMLAnchorElement, '#ffe14d')
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'rotate(7deg)'
+            stopOrbit(e.currentTarget as HTMLAnchorElement)
+          }}
+        >
+          LET&apos;S TALK
+        </motion.a>
+
+        <motion.p
+          className="chaos-line chaos-line-c"
+          initial={{ opacity: 0, rotate: 12 }}
+          animate={{ opacity: 1, rotate: -4 }}
+          transition={{ delay: 0.64 }}
+        >
+          let&apos;s turn your ideas into reality
+        </motion.p>
+
+        <motion.div
+          className="chaos-scroll"
+          animate={{ opacity: [0.35, 1, 0.35], rotate: [-6, -2, -6] }}
+          transition={{ repeat: Infinity, duration: 2.5 }}
+        >
+          ↓ SCROLL
+        </motion.div>
+
+        <motion.div className="chaos-tape chaos-tape-1" aria-hidden />
+        <motion.div className="chaos-tape chaos-tape-2" aria-hidden />
+        <span className="chaos-x chaos-x-1" aria-hidden>✕</span>
+        <span className="chaos-x chaos-x-2" aria-hidden>✕</span>
+      </motion.div>
 
       <style>{`
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
+        .hero-chaos-section { width: 100%; }
+        .chaos-stage {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+        }
+        .chaos-stage a,
+        .chaos-stage button,
+        .chaos-theme { pointer-events: auto; }
+        .chaos-vignette {
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(ellipse 42% 38% at 50% 50%, transparent 0%, rgba(8,6,10,0.2) 50%, rgba(8,6,10,0.65) 100%);
+          pointer-events: none;
+          z-index: 1;
+        }
+        .chaos-theme {
+          position: absolute;
+          top: 6.5rem; 
+          right: 2.5rem; 
+          display: flex;
+          gap: 0.35rem;
+          transform: rotate(-9deg);
+          z-index: 50;
+        }
+        .chaos-theme button {
+          border: 2px solid #ffe14d;
+          background: rgba(10,10,10,0.9);
+          color: #ffe14d;
+          padding: 0.35rem 0.8rem;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: 0.65rem;
+          font-weight: 800;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%);
+          transition: background 0.2s, transform 0.15s;
+        }
+        .chaos-theme button.active {
+          background: #ff3d7f;
+          color: #0a0a0a;
+          border-color: #ff3d7f;
+          box-shadow: 4px 4px 0 #0a0a0a;
+        }
+        .chaos-fragment {
+          position: absolute;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          pointer-events: none;
+          z-index: 3;
+          line-height: 1;
+        }
+
+        /* Static center anchor — framer scale must NOT touch this transform */
+        .chaos-hero-anchor {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 50;
+          pointer-events: none;
+          width: min(92vw, 960px);
+        }
+        .chaos-hero-core {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          width: 100%;
+          padding: 0.5rem;
+        }
+        .chaos-greeting {
+          display: block;
+          margin: 0 0 0.15em;
+          font-size: clamp(0.95rem, 2.5vw, 1.6rem);
+          font-weight: 800;
+          color: #ff3d7f;
+          letter-spacing: 0.32em;
+          text-shadow: 3px 3px 0 #0a0a0a;
+          text-align: center;
+        }
+        .chaos-name {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          align-items: baseline;
+          gap: 0.02em 0.04em;
+          margin: 0;
+          padding: 0;
+          font-size: clamp(3.5rem, 18vw, 12rem);
+          font-weight: 400;
+          line-height: 0.9;
+          color: #F4F7EE;
+          filter: drop-shadow(0 0 28px rgba(244,247,238,0.28));
+          animation: chaos-name-pulse 6s ease-in-out infinite;
+        }
+        .chaos-letter {
+          display: inline-block;
+          text-shadow:
+            3px 3px 0 #0a0a0a,
+            -1px 0 0 #ff3d7f,
+            1px 0 0 #4A9B7F;
+        }
+        @keyframes chaos-name-pulse {
+          0%, 100% { filter: drop-shadow(0 0 24px rgba(244,247,238,0.22)); }
+          50% { filter: drop-shadow(0 0 34px rgba(244,247,238,0.35)); }
+        }
+        .chaos-name-underline {
+          height: 6px;
+          width: min(85%, 620px);
+          margin-top: 0.35em;
+          background: repeating-linear-gradient(
+            88deg,
+            #ff3d7f 0, #ff3d7f 14px,
+            transparent 14px, transparent 20px,
+            #ffe14d 20px, #ffe14d 32px,
+            transparent 32px, transparent 38px
+          );
+          transform-origin: center;
+        }
+        .chaos-name-ghost {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) rotate(2deg);
+          font-size: clamp(3.5rem, 18vw, 12rem);
+          letter-spacing: 0.08em;
+          line-height: 0.9;
+          color: #ff3d7f;
+          opacity: 0.04;
+          z-index: 4;
+          pointer-events: none;
+          white-space: nowrap;
+          filter: blur(3px);
+        }
+        .chaos-name-glow {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: min(85vw, 820px);
+          height: clamp(100px, 20vh, 200px);
+          background: radial-gradient(ellipse at center, rgba(244,247,238,0.14) 0%, transparent 68%);
+          z-index: 5;
+          pointer-events: none;
+        }
+
+        /* Punk stripes & spikes — perimeter only */
+        .chaos-stripe {
+          position: absolute;
+          pointer-events: none;
+          z-index: 2;
+        }
+        .chaos-stripe-a {
+          top: 14%;
+          left: -8%;
+          width: 116%;
+          height: 14px;
+          transform: rotate(-11deg);
+          background: repeating-linear-gradient(90deg, #ffe14d 0, #ffe14d 16px, #0a0a0a 16px, #0a0a0a 32px);
+          opacity: 0.75;
+          box-shadow: 0 2px 0 #ff3d7f;
+        }
+        .chaos-stripe-b {
+          bottom: 32%;
+          left: -6%;
+          width: 112%;
+          height: 12px;
+          transform: rotate(7deg);
+          background: repeating-linear-gradient(90deg, #ff3d7f 0, #ff3d7f 12px, transparent 12px, transparent 20px);
+          opacity: 0.5;
+        }
+        .chaos-stripe-c {
+          bottom: 4%;
+          left: -5%;
+          width: 110%;
+          height: 10px;
+          transform: rotate(-5deg);
+          background: repeating-linear-gradient(90deg, #4A9B7F 0, #4A9B7F 10px, #ffe14d 10px, #ffe14d 18px);
+          opacity: 0.45;
+        }
+        .chaos-spike {
+          position: absolute;
+          width: clamp(48px, 8vw, 80px);
+          height: clamp(48px, 8vw, 80px);
+          pointer-events: none;
+          z-index: 2;
+        }
+        .chaos-spike-tl { top: 0; left: 0; }
+        .chaos-spike-tr { top: 0; right: 0; }
+        .chaos-spike-bl { bottom: 0; left: 0; }
+        .chaos-spike-br { bottom: 0; right: 0; }
+        .chaos-pin {
+          position: absolute;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 35% 35%, #fff 0%, #ff3d7f 40%, #0a0a0a 42%);
+          border: 2px solid #0a0a0a;
+          box-shadow: 2px 3px 0 #0a0a0a;
+          z-index: 6;
+          pointer-events: none;
+        }
+        .chaos-pin-1 { top: 22%; left: 14%; transform: rotate(-18deg); }
+        .chaos-pin-2 { top: 24%; right: 16%; transform: rotate(24deg); }
+
+        /* Zone: top-left */
+        .chaos-role {
+          position: absolute;
+          top: 11%; 
+          left: 3%;
+          display: inline-flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 0.4rem 0.55rem;
+          padding: 0.6rem 0.95rem;
+          background: rgba(8,8,8,0.94);
+          border: 2px dashed #4A9B7F;
+          box-shadow: 6px 6px 0 rgba(255,61,127,0.5);
+          font-size: clamp(0.7rem, 1.6vw, 0.95rem);
+          max-width: min(36vw, 360px);
+          z-index: 18;
+          transform: rotate(-5deg);
+        }
+        .chaos-role-tag {
+          font-size: 0.6em;
+          font-weight: 700;
+          color: #ff3d7f;
+          letter-spacing: 0.25em;
+        }
+        .chaos-bracket { color: #ffe14d; font-weight: 700; }
+        .chaos-role-val { color: #C4CDB8; font-weight: 700; }
+        .chaos-cursor {
+          display: inline-block;
+          width: 2px;
+          height: 1.1em;
+          background: #ffe14d;
+          vertical-align: middle;
+          animation: blink 1s step-end infinite;
+        }
+
+        /* Zone: top-right (left of theme toggles) */
+        .chaos-sticker {
+          position: absolute;
+          top: 11%;
+          right: 20%;
+          transform: rotate(6deg);
+          background: #ffe14d;
+          color: #0a0a0a;
+          font-size: clamp(0.65rem, 1.5vw, 0.85rem);
+          font-weight: 800;
+          letter-spacing: 0.1em;
+          padding: 0.5rem 1.1rem;
+          box-shadow: 4px 4px 0 #0a0a0a;
+          clip-path: polygon(3% 10%, 97% 0, 100% 90%, 0 100%);
+          z-index: 20;
+          animation: chaos-jitter 5s ease-in-out infinite;
+        }
+        .chaos-sticker-pin {
+          position: absolute;
+          top: -7px;
+          left: 50%;
+          width: 11px;
+          height: 11px;
+          background: #ff3d7f;
+          border: 2px solid #0a0a0a;
+          border-radius: 50%;
+          transform: translateX(-50%);
+        }
+
+        .chaos-line {
+          position: absolute;
+          font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+          color: #9DB89A;
+          line-height: 1.45;
+          padding: 0.4rem 0.75rem;
+          background: rgba(8,8,8,0.55);
+          border-left: 3px solid #ff3d7f;
+          max-width: min(42vw, 380px);
+          z-index: 15;
+          pointer-events: none;
+        }
+        .chaos-line em {
+          font-style: normal;
+          color: #ffe14d;
+          font-weight: 800;
+          text-decoration: underline wavy #ff3d7f;
+        }
+
+        /* Zone: mid-left / mid-right — clear of center column */
+        .chaos-line-a {
+          top: 56%;
+          left: 2%;
+          transform: rotate(-4deg);
+          border-left-color: #ff3d7f;
+          max-width: min(22vw, 240px);
+        }
+
+        .chaos-line-b {
+          top: 56%;
+          right: 2%;
+          transform: rotate(3deg);
+          border-left-color: #ffe14d;
+          max-width: min(22vw, 240px);
+        }
+
+        /* Zone: above bottom CTAs */
+        .chaos-line-c {
+          bottom: 22%;
+          left: 50%;
+          transform: translateX(-50%) rotate(-3deg);
+          font-size: clamp(0.68rem, 1.2vw, 0.85rem);
+          color: #4A9B7F;
+          border-left: none;
+          border-top: 2px dashed #4A9B7F;
+          background: rgba(8,8,8,0.55);
+          padding: 0.35rem 0.75rem;
+          max-width: min(52vw, 420px);
+          text-align: center;
+        }
+
+        .chaos-btn {
+          position: absolute;
+          text-decoration: none;
+          font-size: clamp(0.85rem, 1.6vw, 1rem);
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          padding: 0.9rem 1.7rem;
+          z-index: 25;
+          transition: transform 0.2s;
+        }
+        
+        /* Zone: bottom row — three separate slots */
+        .chaos-btn-work {
+          bottom: 10%;
+          left: 4%;
+          background: #ffe14d;
+          color: #0a0a0a;
+          border: 3px solid #0a0a0a;
+          box-shadow: 6px 6px 0 #ff3d7f;
+          transform: rotate(-8deg);
+        }
+
+        .chaos-btn-hire {
+          bottom: 10%;
+          left: 50%;
+          transform: translateX(-50%) rotate(-4deg);
+          background: #ff3d7f;
+          color: #0a0a0a;
+          border: 3px solid #0a0a0a;
+          box-shadow: 7px 7px 0 #ffe14d, 0 0 28px rgba(255,61,127,0.45);
+          font-size: clamp(0.95rem, 1.9vw, 1.15rem);
+          padding: 1rem 2.2rem;
+          clip-path: polygon(2% 0, 100% 4%, 98% 100%, 0 96%);
+          animation: chaos-hire-pulse 2.8s ease-in-out infinite;
+        }
+        @keyframes chaos-hire-pulse {
+          0%, 100% { box-shadow: 7px 7px 0 #ffe14d, 0 0 22px rgba(255,61,127,0.35); }
+          50% { box-shadow: 8px 8px 0 #ffe14d, 0 0 36px rgba(255,61,127,0.55); }
+        }
+
+        .chaos-btn-contact {
+          bottom: 10%;
+          right: 4%;
+          background: rgba(8,8,8,0.92);
+          color: #C4CDB8;
+          border: 2px solid #C4CDB8;
+          box-shadow: 5px 5px 0 rgba(74,155,127,0.6);
+          transform: rotate(8deg);
+        }
+
+        .chaos-scroll {
+          position: absolute;
+          bottom: 3%;
+          left: 50%;
+          transform: translateX(-50%) rotate(-6deg);
+          font-size: 0.62rem;
+          font-weight: 800;
+          letter-spacing: 0.35em;
+          color: #4A9B7F;
+          z-index: 12;
+          pointer-events: none;
+        }
+
+        .chaos-tape {
+          position: absolute;
+          height: 28px;
+          background: repeating-linear-gradient(
+            -45deg,
+            rgba(255,225,77,0.45),
+            rgba(255,225,77,0.45) 8px,
+            rgba(255,61,127,0.35) 8px,
+            rgba(255,61,127,0.35) 16px
+          );
+          z-index: 3;
+          pointer-events: none;
+        }
+        .chaos-tape-1 {
+          top: 3%;
+          left: -6%;
+          width: 112%;
+          height: 20px;
+          transform: rotate(-7deg);
+          opacity: 0.8;
+        }
+        .chaos-tape-2 {
+          bottom: 10%;
+          left: -5%;
+          width: 110%;
+          height: 18px;
+          transform: rotate(4deg);
+          opacity: 0.4;
+        }
+        .chaos-x {
+          position: absolute;
+          font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+          color: #ff3d7f;
+          opacity: 0.1;
+          font-weight: 900;
+          z-index: 4;
+          pointer-events: none;
+        }
+        .chaos-x-1 { top: 10%; left: 2.5%; transform: rotate(14deg); }
+        .chaos-x-2 { bottom: 10%; right: 2.5%; transform: rotate(-12deg); color: #ffe14d; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes chaos-jitter {
+          0%, 100% { transform: rotate(6deg) translate(0, 0); }
+          50% { transform: rotate(5deg) translate(1px, -1px); }
+        }
+        
+        /* Mobile — stack bottom row, keep name centered */
+        @media (max-width: 900px) {
+          .chaos-hero-anchor { width: 96vw; }
+          .chaos-name, .chaos-name-ghost { font-size: clamp(2.8rem, 16vw, 7rem); }
+          .chaos-line-a { top: 62%; max-width: 38vw; }
+          .chaos-line-b { top: 62%; max-width: 38vw; }
+          .chaos-sticker { right: 4%; top: 10%; }
+        }
+        @media (max-width: 640px) {
+          .chaos-greeting { font-size: 0.8rem; letter-spacing: 0.2em; }
+          .chaos-name { font-size: clamp(2.4rem, 15vw, 4.5rem); }
+          .chaos-name-ghost { font-size: clamp(2.4rem, 15vw, 4.5rem); }
+          .chaos-sticker { top: 9%; right: 3%; font-size: 0.52rem; }
+          .chaos-line-a { top: 68%; left: 2%; max-width: 46vw; }
+          .chaos-line-b { display: none; }
+          .chaos-line-c { bottom: 26%; max-width: 88vw; }
+          .chaos-btn-work { bottom: 14%; left: 3%; }
+          .chaos-btn-hire { bottom: 6%; padding: 0.75rem 1.4rem; font-size: 0.8rem; }
+          .chaos-btn-contact { bottom: 14%; right: 3%; }
+          .chaos-role { top: 9%; max-width: 72vw; }
+          .chaos-theme { top: 5rem; right: 1rem; transform: rotate(-6deg); }
+          .chaos-btn { padding: 0.6rem 1rem; font-size: 0.72rem; }
         }
       `}</style>
     </section>

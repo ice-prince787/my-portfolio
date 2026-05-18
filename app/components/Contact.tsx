@@ -103,8 +103,38 @@ export default function Contact() {
             </span>
           </h2>
           <p style={{ color: '#9DB89A', fontSize: '0.95rem', lineHeight: 1.7, opacity: 0.8, maxWidth: 440, margin: '0 auto' }}>
-            I'm open to collabs, feedback, or just chatting about games and code.
-            Hit me up anywhere below.
+            Available for freelance, contract, and full-time roles.
+            Pick a channel below — I reply fast.
+          </p>
+        </div>
+
+        <div className="fade-up" style={{
+          opacity: 0, transform: 'translateY(20px)', transition: 'all 0.6s ease 0.15s',
+          marginBottom: '2rem', textAlign: 'center',
+        }}>
+          <a
+            href="https://discord.com/users/dipankar8256"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-block',
+              background: '#ffe14d',
+              color: '#0a0a0a',
+              textDecoration: 'none',
+              fontWeight: 800,
+              fontSize: 'clamp(0.9rem, 2vw, 1.05rem)',
+              letterSpacing: '0.12em',
+              padding: '1rem 2rem',
+              border: '3px solid #0a0a0a',
+              boxShadow: '6px 6px 0 #ff3d7f',
+              transform: 'rotate(-2deg)',
+              clipPath: 'polygon(2% 0, 100% 4%, 98% 100%, 0 96%)',
+            }}
+          >
+            HIRE ME ON DISCORD →
+          </a>
+          <p style={{ marginTop: '0.75rem', fontSize: '0.78rem', color: '#9DB89A', opacity: 0.75 }}>
+            Or reach out on GitHub / Instagram below
           </p>
         </div>
 
